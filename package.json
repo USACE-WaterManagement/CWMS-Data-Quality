@@ -1,0 +1,39 @@
+{
+  "type": "module",
+  "dependencies": {
+  },
+  "name": "cwms-data-quality",
+  "version": "1.0.0",
+  "description": "A JavaScript implementation of the CWMS QualityTx class. Enables working with Time Series Quality integers. Can help in determining the screening, validity, value range, revision, replacement cause, replacement method, tests failing, and protection of a given Timeseries Quality Code. Created for use with CDA. ",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krowvin/cwms-data-quality.git",
+    "directory": "packages/cwms-data-quality"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "./tests/test.js"
+  },
+  "keywords": [
+    "cwms",
+    "hec",
+    "data",
+    "quality",
+    "codes",
+    "corps",
+    "water",
+    "management",
+    "system"
+  ],
+  "bugs": "https://github.com/krowvin/cwms-data-quality/issues",
+  "author": "Charles Graham <charlie@krowvin.com> (https://krowvin.com)",
+  "contributors": [
+    "Charles Graham <charlie@krowvin.com> (https://krowvin.com)"
+],
+  "license": "MIT"
+}
