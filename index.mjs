@@ -211,7 +211,7 @@ export default class QualityTx {
     }
     _getReplaceCause(bytes) {
         if (this._isRevisedAutomatically(bytes))
-            return "REVISED"
+            return "AUTOMATIC"
         if (this._isRevisedInteractively(bytes))
             return "INTERACTIVE"
         if (this._isRevisedManually(bytes))
@@ -260,7 +260,6 @@ export default class QualityTx {
         bytes[1] = intQuality >> 16 & 0xFF;
         bytes[0] = intQuality >> 24 & 0xFF;
         if (columns) {
-            console.log(this.getStringDescription(intQuality))
             return {
                 "QUALITY_CODE": intQuality,
                 "SCREENED_ID": this._isScreened(bytes) ? "SCREENED" : "UNSCREENED",
