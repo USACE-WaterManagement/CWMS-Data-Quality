@@ -1,0 +1,8 @@
+.accordion-body pre {
+    font-family: monospace;
+    background: lightgray;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1.1em;
+}
