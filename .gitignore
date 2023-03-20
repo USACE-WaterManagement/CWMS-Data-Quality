@@ -2,3 +2,4 @@ node_modules
 jython*
 *.code-workspace
 *.xlsx
+*.tgz
