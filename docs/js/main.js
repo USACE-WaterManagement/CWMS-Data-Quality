@@ -336,12 +336,6 @@ document.querySelectorAll('[name="bit-map-select"]').forEach(elem=>{
         bitBinMapInput.value = dec2bin(new_val)
         // Update decimal value
         bitDecMapInput.value = new_val
-        // setCreateTabDropdowns(bitDecMapInput.value)
+        setCreateTabDropdowns(bitDecMapInput.value)
     })
 })
-// for (let index = 0; index < 32; index++) {
-//     let new_val = dec2bin(qtx.clearBit_int(bin2dec(bitBinMapInput.value), index))
-//     console.log(new_val)
-//     bitBinMapInput.value = new_val
-
-// }

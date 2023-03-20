@@ -1,7 +1,8 @@
 # CWMS Data Quality
 _A JavaScript Library for determining Corps Water Management System (CMWS) Timeseries Quality client-side_
 
-
+## Working Example of CWMS-Data-Quality JS Module
+Here: [Github Page](https://krowvin.github.io/CWMS-Data-Quality/)
 ## Getting Started ☑ 
 1. Install the CWMS-Data-Quality Package
    1. Using [**NPM**](https://www.npmjs.com/package/cwms-data-quality) (with nodejs installed):  
