@@ -1,8 +1,45 @@
 .accordion-body pre {
-    font-family: monospace;
-    background: lightgray;
-    padding: 10px;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 1.1em;
+  font-family: monospace;
+  background: lightgray;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* Paul Tol color palette for color blindness */
+.screened {
+  color: white;
+  background: rgb(51, 34, 136);
+}
+.valid {
+  color: white;
+  background: rgb(17, 119, 51);
+}
+.range {
+  color: white;
+  background: rgb(68, 170, 153);
+}
+.changed {
+  background: rgb(136, 204, 238);
+}
+.repl-cause {
+  background: rgb(221, 204, 119);
+}
+.repl-method {
+  color: white;
+  background: rgb(204, 102, 119);
+}
+.test-failed {
+  color: white;
+  background: rgb(170, 68, 153);
+}
+.protected {
+  color: white;
+  background: rgb(136, 34, 85);
+}
+
+/* Input Bit Coloring */
+#bitBinMap::first-letter {
+    color: green;
 }
