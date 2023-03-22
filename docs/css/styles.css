@@ -9,32 +9,40 @@
 
 /* Paul Tol color palette for color blindness */
 .screened {
+  cursor: help;
   color: white;
   background: rgb(51, 34, 136);
 }
 .valid {
+  cursor: help;
   color: white;
   background: rgb(17, 119, 51);
 }
 .range {
+  cursor: help;
   color: white;
   background: rgb(68, 170, 153);
 }
 .changed {
+  cursor: help;
   background: rgb(136, 204, 238);
 }
 .repl-cause {
+  cursor: help;
   background: rgb(221, 204, 119);
 }
 .repl-method {
+  cursor: help;
   color: white;
   background: rgb(204, 102, 119);
 }
 .test-failed {
+  cursor: help;
   color: white;
   background: rgb(170, 68, 153);
 }
 .protected {
+  cursor: help;
   color: white;
   background: rgb(136, 34, 85);
 }
@@ -42,4 +50,11 @@
 /* Input Bit Coloring */
 #bitBinMap::first-letter {
     color: green;
+}
+
+/* Remove the input spinners, this can lead to invalid values */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

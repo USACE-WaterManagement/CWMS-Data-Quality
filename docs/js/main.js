@@ -1,6 +1,11 @@
 import QualityTx from "./index.min.mjs"
-import {saveSettings, loadSettings} from "./settings.js"
+import "./labels.js"
+import { saveSettings, loadSettings } from "./settings.js"
 import { bin2dec, dec2bin, $ } from "./utils.js"
+
+// TODO: Run checks for rules
+// TODO: Check to see if any unused bits are set
+
 
 const bitMapOptions = {
     "SCREENED_ID": ["SCREENED", "UNSCREENED"],
@@ -10,24 +15,24 @@ const bitMapOptions = {
     "REPL_CAUSE_ID": ["NONE", "AUTOMATIC", "INTERACTIVE", "MANUAL", "RESTORED"],
     "REPL_METHOD_ID": ["NONE", "LIN_INTERP", "EXPLICIT", "MISSING", "GRAPHICAL"],
     "TEST_FAILED_ID": [
-                       "ABSOLUTE_VALUE", "CONSTANT_VALUE", "RATE_OF_CHANGE", 
-                       "RELATIVE_VALUE", "DURATION_VALUE", "NEG_INCREMENT", 
-                       "SKIP_LIST", "USER_DEFINED", "DISTRIBUTION", 
-                    ],
+        "ABSOLUTE_VALUE", "CONSTANT_VALUE", "RATE_OF_CHANGE",
+        "RELATIVE_VALUE", "DURATION_VALUE", "NEG_INCREMENT",
+        "SKIP_LIST", "USER_DEFINED", "DISTRIBUTION",
+    ],
     "UNUSED": [],
     "PROTECTION_ID": ["PROTECTED", "UNPROTECTED"]
 }
 // TODO: Replace this with clear all bits method
 const CLEAR_BITS = "00000000000000000000000000000000"
 const qualityCodeInput = $("#qualityCode"),
-checkCodeElem = $("#checkCode"),
-qualityTableBodyElem = $("#qualityTable").querySelector("tbody"),
-createTableBodyElem = $("#createTable").querySelector("tbody"),
-clearCodeElem = $("#clearCode"),
-bitBinMapInput = $("#bitBinMap"),
-bitDecMapInput = $("#bitDecMap"),
-inputGroupSizingElem = $("#inputGroup-sizing-default"),
-inputBitCountElem = $("#inputBitCount")
+    checkCodeElem = $("#checkCode"),
+    qualityTableBodyElem = $("#qualityTable").querySelector("tbody"),
+    createTableBodyElem = $("#createTable").querySelector("tbody"),
+    clearCodeElem = $("#clearCode"),
+    bitBinMapInput = $("#bitBinMap"),
+    bitDecMapInput = $("#bitDecMap"),
+    inputGroupSizingElem = $("#inputGroup-sizing-default"),
+    inputBitCountElem = $("#inputBitCount")
 
 let screened_message_count = 0;
 
@@ -40,7 +45,7 @@ function clearTable() {
 }
 function addRow(qualityData) {
     // Clear any temp messages
-    document.getElementsByName("temp-msg").forEach(e=>e.remove())
+    document.getElementsByName("temp-msg").forEach(e => e.remove())
     // Add a row to the quality table with the provided quality data
     const tr = document.createElement("tr")
     tr.innerHTML = `<td class="col">${qualityData.QUALITY_CODE}</td>
@@ -54,9 +59,14 @@ function addRow(qualityData) {
         <td>${qualityData.TEST_FAILED_ID}</td>`
     qualityTableBodyElem.appendChild(tr)
 }
-checkCodeElem.addEventListener("click", ()=>{
+checkCodeElem.addEventListener("click", (e) => {
     if (!qualityCodeInput.value) {
         alert(`Enter a value from ${qualityCodeInput.min} to ${qualityCodeInput.max}`)
+        return
+    }
+    if (!isBitMapValid(dec2bin(qualityCode.value))) {
+        console.log("checkcode click")
+        qualityCode.value = 0
         return
     }
     let existing_columns = document.querySelectorAll("tr td:first-of-type")
@@ -80,9 +90,70 @@ addRow(qtx.getStringDescription(9, true))
 addRow(qtx.getStringDescription(Math.floor(Math.random() * qualityCodeInput.max), true))
 
 
+function isBitMapValid(bits) {
+    // This method is really only needed if you are making bitmaps dynamically in the browser like you see here
+
+    // Certain bits should not be set, return if the bits are valid or not
+    // False - invalid, True - valid
+
+    // This is a bit confusing, because charAt reads left to right, but the bit order is right to left
+    // Subtracting 31 to reverse the charAt order
+
+    if (!bits) bits = bitBinMapInput.value
+    let invalid_bits = ""
+    // Enforces Rule #1
+    // Check if the screened bit is NOT set, but other bits ARE set 
+    // Deliberate 0 to show this is bit 0
+    if (bits.charAt(31 - 0) == '0') {
+        for (const b in bits) {
+            if (b == '1') {
+                invalid_bits = "RULE 1"
+            }
+        }
+    }
+    // Enforces RULE #2
+    if (bits.charAt(31-14) == '1') invalid_bits = "Rule 2, bit 14"
+    if (bits.charAt(31-22) == '1') invalid_bits = "Rule 2, bit 22"
+    if (bits.charAt(31-24) == '1') invalid_bits = "Rule 2, bit 24"
+    if (bits.charAt(31-26) == '1') invalid_bits = "Rule 2, bit 26"
+    if (bits.charAt(31-27) == '1') invalid_bits = "Rule 2, bit 27"
+    if (bits.charAt(31-28) == '1') invalid_bits = "Rule 2, bit 28"
+    if (bits.charAt(31-29) == '1') invalid_bits = "Rule 2, bit 29"
+    if (bits.charAt(31-30) == '1') invalid_bits = "Rule 2, bit 30"
+    // Enforce Rule # 3 - exclusive bits only, no more than 1 bit should be set between bits 1 and 4
+    let b_count = 0
+    console.log('bits', bits)
+    // let temp_bits = String(structuredClone(bits))
+    for (let b of bits.slice(31-5, 31)) {
+        console.log(b)
+        if (b=='1') b_count +=1
+    }
+    if (b_count > 1) invalid_bits = "Rule 3"
+    // Rules 5 and 6 mean that we need 3 bits to get to 5 values. 2 bits or 11 gets you 0-3 (4 bits)
+    // However, needing a range from 0..4 or 5 bits requires 3 bits where 5 is 100
+    // Make sure Replacement Cause bits 8-10 can NOT be 111 or 101 or 110
+    if ((bits.charAt(31 - 8) == '1' && bits.charAt(31 - 10) == '1') || 
+        (bits.charAt(31 - 9) == '1' && bits.charAt(31 - 10) == '1'))  invalid_bits = "Rule 5"
+    // Make sure Replacement Method bits 11-13 can NOT be 111 or 101 or 110
+    if ((bits.charAt(31 - 11) == '1' && bits.charAt(31 - 13) == '1') ||
+        (bits.charAt(31 - 22) == '1' && bits.charAt(31 - 13) == '1')) invalid_bits = "Rule 6"
+    if (invalid_bits) {
+        alert(`You have invalid bits set with this value, per ${invalid_bits}. Clearing bits.`)
+        return false
+    }
+    return true
+
+}
 function onBinaryChange(e) {
     // Let the user cut/paste
     if (e.key == "Control" || e.ctrlKey) return
+    if (!isBitMapValid()) {
+        // Set all the bits back to 0
+        console.log("binary change")
+        resetBits()
+        e.preventDefault()
+        return
+    }
     // Just 1's and 0's!
     if (!["0", "1", "Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
         bitBinMapInput.classList.remove("border-dark")
@@ -101,7 +172,7 @@ function onBinaryChange(e) {
 
 // Create Tab Functions
 bitBinMapInput.addEventListener("keyup", onBinaryChange)
-bitBinMapInput.addEventListener("change", onBinaryChange)
+// bitBinMapInput.addEventListener("change", onBinaryChange)
 bitBinMapInput.addEventListener("keyup", () => {
     inputBitCountElem.innerText = bitBinMapInput.value.length + " / 32"
     // Auto set the selection when the user reaches 32 bits
@@ -115,11 +186,17 @@ bitBinMapInput.addEventListener("keyup", () => {
         inputBitCountElem.classList.replace("border-success", "border-danger")
 })
 
-bitDecMapInput.addEventListener("keydown", (e) =>{
+bitDecMapInput.addEventListener("keydown", (e) => {
     // TODO: Enforce quality rules
     if (!e.target.value) return
+    if (!isBitMapValid()) {
+        console.log("decimal change")
+        e.preventDefault()
+        resetBits() 
+        return
+    }
     // Keep the input within the max range for quality values
-    setTimeout(()=>{
+    setTimeout(() => {
         if (parseInt(e.target.value) > parseInt(e.target.max))
             e.target.value = e.target.max
         if (parseInt(e.target.value) < parseInt(e.target.min))
@@ -127,20 +204,17 @@ bitDecMapInput.addEventListener("keydown", (e) =>{
         bitBinMapInput.value = dec2bin(e.target.value)
         setCreateTabDropdowns(e.target.value)
     }, 300)
-})  
+})
+
+function resetBits() {
+    // Sets all bits back to 0
+    bitBinMapInput.value = CLEAR_BITS
+    bitDecMapInput.value = bin2dec(CLEAR_BITS)
+    setCreateTabDropdowns(bitDecMapInput.value)
+}
 
 function setCreateTabDropdowns(qualityInt) {
     let is_screened = qtx.isScreened_int(qualityInt)
-    if (!is_screened) {
-        bitBinMapInput.value = CLEAR_BITS
-        bitDecMapInput.value = bin2dec(CLEAR_BITS)
-        qualityInt = bitDecMapInput.value
-        // Only show the message once
-        if (screened_message_count < 1) {
-            alert('DATA QUALITY RULE 1 : Screened bit must be set to enable other bits')
-            screened_message_count += 1
-        }
-    }
     let current_quality_map = qtx.getStringDescription(qualityInt, true)
     delete current_quality_map["QUALITY_CODE"]
     for (const key in current_quality_map) {
@@ -150,7 +224,7 @@ function setCreateTabDropdowns(qualityInt) {
         // Always keep the screening dropdown enabled
         if (key != "SCREENED_ID")
             BIT_MAP_SELECT.disabled = !is_screened
-            // TEST_FAILED_ID selections
+        // TEST_FAILED_ID selections
         if (BIT_MAP_SELECT?.multiple) {
             for (const item of BIT_MAP_VALUES.split("+")) {
                 for (const optionElem of BIT_MAP_SELECT.options)
@@ -160,8 +234,8 @@ function setCreateTabDropdowns(qualityInt) {
     }
 }
 // Add listeners to tabs, apply defaults
-document.querySelectorAll('[role="tab"]').forEach(elem=>{
-    elem.addEventListener('click', (evt)=> {
+document.querySelectorAll('[role="tab"]').forEach(elem => {
+    elem.addEventListener('click', (evt) => {
         // Save tab choice
         settings["tab"] = evt.target.id
         saveSettings(settings)
@@ -192,146 +266,119 @@ createTableBodyElem.querySelectorAll("tr").forEach(elem => {
     elem.children[2].appendChild(selectElem)
 })
 
+function determineNewQuality(evt, qualityInt) {
+    if (evt.target.multiple) {
+        let selected = Array.from(evt.target.selectedOptions).map(({ value }) => value);
+        // Clear all bits before setting them
+        qualityInt = qtx.clearAllTest_int(qualityInt)
+        if (selected.includes("ABSOLUTE_VALUE"))
+            qualityInt = qtx.setAbsoluteMagnitude_int(qualityInt)
+        if (selected.includes("CONSTANT_VALUE"))
+            qualityInt = qtx.setConstantValue_int(qualityInt)
+        if (selected.includes("RATE_OF_CHANGE"))
+            qualityInt = qtx.setRateOfChange_int(qualityInt)
+        if (selected.includes("RELATIVE_VALUE"))
+            qualityInt = qtx.setRelativeMagnitude_int(qualityInt)
+        if (selected.includes("DURATION_VALUE"))
+            qualityInt = qtx.setDurationMagnitude_int(qualityInt)
+        if (selected.includes("NEG_INCREMENT"))
+            qualityInt = qtx.setNegativeIncremental_int(qualityInt)
+        if (selected.includes("SKIP_LIST"))
+            qualityInt = qtx.setGageList_int(qualityInt)
+        if (selected.includes("USER_DEFINED"))
+            qualityInt = qtx.setUserDefinedTest_int(qualityInt)
+        if (selected.includes("DISTRIBUTION"))
+            qualityInt = qtx.setDistributionTest_int(qualityInt)
+        return qualityInt
+    } else {
+        switch (evt.target.id) {
+            case "SCREENED_ID":
+                if (evt.target.value == "SCREENED")
+                    return qtx.setScreened_int(qualityInt)
+                else
+                    return qtx.clearBit_int(qualityInt)
+            case "VALIDITY_ID":
+                switch (evt.target.value) {
+                    case "REJECTED":
+                        return qtx.setReject_int(qualityInt)
+                    case "OKAY":
+                        return qtx.setOkay_int(qualityInt)
+                    case "MISSING":
+                        return qtx.setMissing_int(qualityInt)
+                    case "QUESTIONABLE":
+                        return qtx.setQuestion_int(qualityInt)
+                    case "UNKNOWN":
+                        qualityInt = qtx.clearReject_int(qualityInt)
+                        qualityInt = qtx.clearOkay_int(qualityInt)
+                        qualityInt = qtx.clearMissing_int(qualityInt)
+                        return qtx.clearQuestion_int(qualityInt)
+                }
+            case "RANGE_ID":
+                switch (evt.target.value) {
+                    case "NO_RANGE":
+                        return qtx.clearRange_int(qualityInt)
+                    case "RANGE_0":
+                        return qtx.setRange0_int(qualityInt)
+                    case "RANGE_1":
+                        return qtx.setRange1_int(qualityInt)
+                    case "RANGE_2":
+                        return qtx.setRange2_int(qualityInt)
+                    case "RANGE_3":
+                        return qtx.setRange3_int(qualityInt)
+                }
+            case "CHANGED_ID":
+                switch (evt.target.value) {
+                    case "ORIGINAL":
+                        return qtx.clearDifferentValue_int(qualityInt)
+                    case "MODIFIED":
+                        return qtx.setDifferentValue_int(qualityInt)
+                }
+            case "REPL_CAUSE_ID":
+                switch (evt.target.value) {
+                    case "NONE":
+                        return qtx.clearAllRevised_int(qualityInt)
+                    case "AUTOMATIC":
+                        return qtx.setRevisedAutomatically_int(qualityInt)
+                    case "INTERACTIVE":
+                        return qtx.setRevisedInteractively_int(qualityInt)
+                    case "MANUAL":
+                        return qtx.setRevisedManually_int(qualityInt)
+                    case "RESTORED":
+                        return qtx.setRevisedToOriginalAccepted_int(qualityInt)
+                }
+            case "REPL_METHOD_ID":
+                switch (evt.target.value) {
+                    case "NONE":
+                        return qtx.clearReplaceMethod_int(qualityInt)
+                    case "LIN_INTERP":
+                        return qtx.setReplaceLinearInterpolation_int(qualityInt)
+                    case "EXPLICIT":
+                        return qtx.setReplaceManualChange_int(qualityInt)
+                    case "MISSING":
+                        return qtx.setReplaceWithMissing_int(qualityInt)
+                    case "GRAPHICAL":
+                        return qtx.setReplaceGraphicalChange_int(qualityInt)
+                }
+            case "PROTECTION_ID":
+                switch (evt.target.value) {
+                    case "UNPROTECTED":
+                        return qtx.clearProtected_int(qualityInt)
+                    case "PROTECTED":
+                        return qtx.setProtected_int(qualityInt)
+                }
+        }
+    }
+}
+
 // Load the default value 
 setCreateTabDropdowns(bin2dec(bitBinMapInput.value))
 
 // Table Event Listeners
-document.querySelectorAll('[name="bit-map-select"]').forEach(elem=>{
-    elem.addEventListener("change", (evt) =>{
-        let new_val = "";
+document.querySelectorAll('[name="bit-map-select"]').forEach(elem => {
+    elem.addEventListener("change", (evt) => {
         let qualityInt = bin2dec(bitBinMapInput.value)
-        if (evt.target.multiple) {
-            let selected = Array.from(evt.target.selectedOptions).map(({ value }) => value);
-            // Clear all bits before setting them
-            qualityInt = qtx.clearAllTest_int(qualityInt)
-            if (selected.includes("ABSOLUTE_VALUE"))
-                qualityInt = qtx.setAbsoluteMagnitude_int(qualityInt)
-            if (selected.includes("CONSTANT_VALUE"))
-                qualityInt = qtx.setConstantValue_int(qualityInt)
-            if (selected.includes("RATE_OF_CHANGE"))
-                qualityInt = qtx.setRateOfChange_int(qualityInt)
-            if (selected.includes("RELATIVE_VALUE"))
-                qualityInt = qtx.setRelativeMagnitude_int(qualityInt)
-            if (selected.includes("DURATION_VALUE"))
-                qualityInt = qtx.setDurationMagnitude_int(qualityInt)
-            if (selected.includes("NEG_INCREMENT"))
-                qualityInt = qtx.setNegativeIncremental_int(qualityInt)
-            if (selected.includes("SKIP_LIST"))
-                qualityInt = qtx.setGageList_int(qualityInt)
-            if (selected.includes("USER_DEFINED"))
-                qualityInt = qtx.setUserDefinedTest_int(qualityInt)
-            if (selected.includes("DISTRIBUTION"))
-                qualityInt = qtx.setDistributionTest_int(qualityInt)
-            new_val = qualityInt
-        } else {
-            switch (evt.target.id) {
-                case "SCREENED_ID":
-                    if (evt.target.value == "SCREENED")
-                        new_val = qtx.setScreened_int(qualityInt)
-                    else
-                        new_val = qtx.clearBit_int(qualityInt)
-                    break;
-                case "VALIDITY_ID": 
-                    switch (evt.target.value) {
-                        case "REJECTED":
-                            new_val = qtx.setReject_int(qualityInt)
-                            break;
-                        case "OKAY":
-                            new_val = qtx.setOkay_int(qualityInt)
-                            break;
-                        case "MISSING":
-                            new_val = qtx.setMissing_int(qualityInt)
-                            break;
-                        case "QUESTIONABLE":
-                            new_val = qtx.setQuestion_int(qualityInt)
-                            break;
-                        case "UNKNOWN":
-                            new_val = qtx.clearReject_int(qualityInt)
-                            new_val = qtx.clearOkay_int(new_val)
-                            new_val = qtx.clearMissing_int(new_val)
-                            new_val = qtx.clearQuestion_int(new_val)
-                            break;
-                        default:
-                            break;
-                    }
-                case "RANGE_ID":
-                    switch (evt.target.value) {
-                        case "NO_RANGE":
-                            new_val = qtx.clearRange_int(qualityInt)
-                            break;
-                        case "RANGE_0":
-                            new_val = qtx.setRange0_int(qualityInt)
-                            break;
-                        case "RANGE_1":
-                            new_val = qtx.setRange1_int(qualityInt)
-                            break;
-                        case "RANGE_2":
-                            new_val = qtx.setRange2_int(qualityInt)
-                            break;
-                        case "RANGE_3":
-                            new_val = qtx.setRange3_int(qualityInt)
-                            break;
-                    }
-                    break;
-                case "CHANGED_ID":
-                    switch (evt.target.value) {
-                        case "ORIGINAL":
-                            new_val = qtx.clearDifferentValue_int(qualityInt)
-                            break;
-                        case "MODIFIED":
-                            new_val = qtx.setDifferentValue_int(qualityInt)
-                            break;
-                    }
-                case "REPL_CAUSE_ID":
-                    switch (evt.target.value) {
-                        case "NONE":
-                            // I think this clears method too
-                            new_val = qtx.setNoRevision_int(qualityInt)
-                            break;
-                        case "AUTOMATIC":
-                            new_val = qtx.setRevisedAutomatically_int(qualityInt)
-                            break;
-                        case "INTERACTIVE":
-                            new_val = qtx.setRevisedInteractively_int(qualityInt)
-                            break;
-                        case "MANUAL":
-                            new_val = qtx.setRevisedManually_int(qualityInt)
-                            break;
-                        case "RESTORED":
-                            // ????
-                            new_val = qtx.setRevisedToOriginalAccepted_int(qualityInt)
-                            break;
-                    }
-                case "REPL_METHOD_ID":
-                    switch (evt.target.value) {
-                        case "NONE":
-                            new_val = qtx.clearReplaceMethod_int(qualityInt)
-                            break;
-                        case "LIN_INTERP":
-                            new_val = qtx.setReplaceLinearInterpolation_int(qualityInt)
-                            break;
-                        case "EXPLICIT":
-                            new_val = qtx.setReplaceManualChange_int(qualityInt)
-                            break;
-                        case "MISSING":
-                            new_val = qtx.setReplaceWithMissing_int(qualityInt)
-                            break;
-                        case "GRAPHICAL":
-                            new_val = qtx.setReplaceGraphicalChange_int(qualityInt)
-                            break;
-                    }
-                case "PROTECTION_ID":
-                    switch (evt.target.value) {
-                        case "UNPROTECTED":
-                            new_val = qtx.clearProtected_int(qualityInt)
-                            break;
-                        case "PROTECTED":
-                            new_val = qtx.setProtected_int(qualityInt)
-                            break;
-                    }
-            }
-        }
-        if (new_val === "") return
+        let new_val = determineNewQuality(evt, qualityInt)
+        if (new_val === null) return
         // Update binary value
         bitBinMapInput.value = dec2bin(new_val)
         // Update decimal value
