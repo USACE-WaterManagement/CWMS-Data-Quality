@@ -796,6 +796,11 @@ export default class QualityTx {
         tmp = this.clearBit_int(tmp, this.USER_DEFINED_TEST_BIT)
         return this.clearBit_int(tmp, this.DISTRIBUTIONTEST_BIT)
     }
+    clearAllRevised_int(intQuality) {
+        let tmp = this.clearBit_int(intQuality, 9);
+        tmp = this.clearBit_int(tmp, 10);
+        return this.clearBit_int(tmp, 11);
+    }
     clearUserDefinedTest_int(intQuality) {
         return this.clearBit_int(intQuality, 25);
     }

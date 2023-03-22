@@ -202,7 +202,7 @@
                             </table>
                         </div>
                        <div class="row">
-                            <div class="col text-center fw-bold">Bits 22, 24, 26-30 are UNUSED and should be UNSET (0)</div>
+                            <div class="col text-center fw-bold">Bits 14, 21, 23, 26-30 are UNUSED and should be UNSET (0)</div>
                         </div>
                         <div class="accordion mb-3 mt-1" id="RULES">
                             <div class="accordion-item">
@@ -217,8 +217,8 @@
                                     <div class="accordion-body">
                                         <ol>
                                             <li>Unless the Screened bit is set, no other bits can be set.</li>
-                                            <li>Unused bits (22, 24, 27-31, 32+) must be reset (zero).</li>
-                                            <li>The Okay, Missing, Questioned and Rejected bits are mutually exclusive.</li>
+                                            <li>Unused bits (14, 21, 23, 26-30, 31+) must be reset (zero).</li>
+                                            <li>The Okay, Missing, Questioned, Unknown, and Rejected bits are mutually exclusive.</li>
                                             <li>No replacement cause or replacement method bits can be set unless
                                             the changed (different) bit is also set, and if the changed (different)
                                             bit is set, one of the cause bits and one of the replacement
@@ -228,6 +228,8 @@
                                             <li>The Test Failed bits are not mutually exclusive (multiple tests can be
                                             marked as failed).</li>
                                         </ol>
+                                        <div class="alert-danger rounded p-1"><b>Notice:</b> In some guides you will see the bits are off by one. For example the ignored bits might be 22, 24, 27-31. That is because these guides count from 1 instead of 0.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -244,9 +246,13 @@
                                         <h4>Example:</h4>
                                         Say the decimal quality value is:<br>
                                         <b>56599761</b><br>
-                                        That would make the binary equivalent:<br>
-                                        <span class="text-center" style="letter-spacing: 0.2em; font-family: monospace;">0000 00<b style="border: 2px solid teal;">1</b><b style="border: 2px solid green;">1 0101</b> 1111 1010 0100 1<b style="border: 2px solid rgb(0, 255, 234);">10</b><b style="border: 2px solid blue;">1 000</b><b style="border: 2px solid red;">1</b><br></span>
-                                        <em>Because this is Little Endian bit order, the <b style="color: red;">far right bit</b> is bit index 0.</em>
+                                        That would make the binary equivalent:<br><br>
+                                        <span class="bg-white py-1 rounded-pill fw-bold"><span class="protected rounded p-2">0</span> 0 0 0 0 0 <span
+                                                class="test-failed rounded p-2">1 1</span> 0 <span class="test-failed rounded p-2">1</span> 0 <span class="test-failed rounded p-2">1 1 1 1 1</span> 1 <span class="repl-method rounded p-2">1 0 0</span>
+                                            <span class="repl-cause rounded p-2">1 0 0</span> <span class="changed rounded p-2">1</span> <span
+                                                class="range rounded p-2">1 0</span> <span class="valid rounded p-2">1 0 0 0</span> <span
+                                                class="screened rounded p-2">1</span></span><br><br>
+                                        <em>Because this is Little Endian bit order, the <b class="screened rounded px-2">far right bit</b> is bit index 0.</em>
                                         <h4>Let's walk through from right to left using the diagram below:</h4>
                                         <ul>
                                             <li><a title="Show Me" href="#SCREENED" class="screened px-2 rounded-pill me-1"></a><b>Bit 0 (1)</b>: or the far right bit - is the screened bit. It is 1 in our example so the value is screened.</li>
@@ -263,8 +269,8 @@
                                             <li><a title="Show Me" href="#RANGE" class="range px-2 rounded-pill me-1"></a><b>Bit 5-6 (2)</b>: Value range bits, the bits are 10 for bits 5 and 6. This corresponds to RANGE_2. Where NO_RANGE is 00, RANGE_1 is 01, RANGE_2 is 10, and RANGE_3 is 11</li>
                                             <li><a title="Show Me" href="#CHANGED" class="changed px-2 rounded-pill me-1"></a><b>Bit 7 (1)</b>: Different/changed/modified bit. Set to 1 is MODIFIED, set to 0 is Original. It is set to 1 for our example, and is therefore MODIFIED</li>
                                             <li><a title="Show Me" href="#CAUSE" class="repl-cause px-2 rounded-pill me-1"></a><b>Bit 8-10 (3)</b>: Replacement Cause bits, the replacement cause is one of 5 options. We have 100 for these bits which corresponds to RESTORED</li>
-                                            <li><a title="Show Me" href="#METHOD" class="repl-method px-2 rounded-pill me-1"></a><b>Bit 11-14 (4)</b>: Replacement Method bits, these account for the 5 variations you can have. For our case we have </li>
-                                            <li><a title="Show Me" href="#TEST" class="test-failed px-2 rounded-pill me-1"></a><b>Bit 15-25 (9)</b>: Test Failed bits, two of these bits are ignored (22/24). Any number of these bits could be set as the test values are <b>NOT</b> mutually exclusive per <a title="Jump to Rule 7" href="#RULES">RULE #7</a></li>
+                                            <li><a title="Show Me" href="#METHOD" class="repl-method px-2 rounded-pill me-1"></a><b>Bit 11-14 (4)</b>: Replacement Method bits, these account for the 5 variations you can have. </li>
+                                            <li><a title="Show Me" href="#TEST" class="test-failed px-2 rounded-pill me-1"></a><b>Bit 15-25 (9)</b>: Test Failed bits, two of these bits are ignored (21/23). Any number of these bits could be set as the test values are <b>NOT</b> mutually exclusive per <a title="Jump to Rule 7" href="#RULES">RULE #7</a></li>
                                             <li><a title="Show Me" href="" class="px-2 rounded-pill me-1"></a><b>Bit 26-30 (5)</b>: Unused Bits/Ignored</li>
                                             <li><a title="Show Me" href="#PROTECTED" class="protected px-2 rounded-pill me-1"></a><b>Bit 31 (1)</b>: Protected Bit - When this bit is set the data is protected and should not be editable by automated processes</li>
                                         </ul>
@@ -275,20 +281,20 @@
 Little Endian i.e. 31....0
 
   3                   2                   1                     
-<span class="bg-white py-1 rounded-pill fw-light"><span class="protected rounded py-2">1</span> 0 9 8 7 6 <span class="test-failed rounded py-2">5 4 3 2 1 0 9 8 7 6 5</span> <span class="repl-method rounded py-2">4 3 2 1</span> <span class="repl-cause rounded py-2">0 9 8</span> <span class="changed rounded py-2">7</span> <span class="range rounded py-2">6 5</span> <span class="valid rounded py-2">4 3 2 1</span> <span class="screened rounded py-2">0</span></span>
+<span class="bg-white py-1 rounded-pill fw-light"><span class="protected rounded py-2">1</span> 0 9 8 7 6 <span class="test-failed rounded py-2">5 4</span> 3 <span class="test-failed rounded py-2">2</span> 1 <span class="test-failed rounded py-2">0 9 8 7 6 5</span> 4 <span class="repl-method rounded py-2">3 2 1</span> <span class="repl-cause rounded py-2">0 9 8</span> <span class="changed rounded py-2">7</span> <span class="range rounded py-2">6 5</span> <span class="valid rounded py-2">4 3 2 1</span> <span class="screened rounded py-2">0</span></span>
 31                                                            0
-P - - - - - T T T T T T T T T T T M M M M C C C D R R V V V V S
-|           <---------+---------> <--+--> <-+-> | <+> <--+--> |  
-|                     |              |      |   |  |     |    +------<span id="SCREENED" class="screened p-1 rounded-pill">Screened T/F </span>
-|                     |              |      |   |  |     |
-|                     |              |      |   |  |     +---------<span id="VALID" class="valid p-1 rounded-pill">Validity Flags</span>
-|                     |              |      |   |  |
-|                     |              |      |   |  +-------------<span id="RANGE" class="range p-1 rounded-pill">Value Range Integer</span>
-|                     |              |      |   |
-|                     |              |      |   +--------------<span id="CHANGED" class="changed p-1 rounded-pill">Different T/F</span>
-|                     |              |      | 
-|                     |              |      +----------------<span id="CAUSE" class="repl-cause p-1 rounded-pill">Replacement Cause Integer</span>
-|                     |              |
+P - - - - - T - T - T T T T T T T - M M M C C C D R R V V V V S
+|           <- --- ---+--------->   <-+-> <-+-> | <+> <--+--> |  
+|                     |               |     |   |  |     |    +------<span id="SCREENED" class="screened p-1 rounded-pill">Screened T/F </span>
+|                     |               |     |   |  |     |
+|                     |               |     |   |  |     +---------<span id="VALID" class="valid p-1 rounded-pill">Validity Flags</span>
+|                     |               |     |   |  |
+|                     |               |     |   |  +-------------<span id="RANGE" class="range p-1 rounded-pill">Value Range Integer</span>
+|                     |               |     |   |
+|                     |               |     |   +--------------<span id="CHANGED" class="changed p-1 rounded-pill">Different T/F</span>
+|                     |               |     | 
+|                     |               |     +----------------<span id="CAUSE" class="repl-cause p-1 rounded-pill">Replacement Cause Integer</span>
+|                     |               |
 |                     |              +---------------------<span id="METHOD" class="repl-method p-1 rounded-pill">Replacement Method Integer</span>
 |                     |
 |                     +----------------------------------<span id="TEST" class="test-failed p-1 rounded-pill">Test Failed Flags</span>
