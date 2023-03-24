@@ -248,7 +248,7 @@
                                         <b>56599761</b><br>
                                         That would make the binary equivalent:<br><br>
                                         <span class="bg-white py-1 rounded-pill fw-bold"><span class="protected rounded p-2">0</span> 0 0 0 0 0 <span
-                                                class="test-failed rounded p-2">1 1</span> 0 <span class="test-failed rounded p-2">1</span> 0 <span class="test-failed rounded p-2">1 1 1 1 1</span> 1 <span class="repl-method rounded p-2">1 0 0</span>
+                                                class="test-failed rounded p-2">1 1 0 1 0 1 1 1 1 1</span> <span class="repl-method rounded p-2">1 1 0 0</span>
                                             <span class="repl-cause rounded p-2">1 0 0</span> <span class="changed rounded p-2">1</span> <span
                                                 class="range rounded p-2">1 0</span> <span class="valid rounded p-2">1 0 0 0</span> <span
                                                 class="screened rounded p-2">1</span></span><br><br>
@@ -281,20 +281,20 @@
 Little Endian i.e. 31....0
 
   3                   2                   1                     
-<span class="bg-white py-1 rounded-pill fw-light"><span class="protected rounded py-2">1</span> 0 9 8 7 6 <span class="test-failed rounded py-2">5 4</span> 3 <span class="test-failed rounded py-2">2</span> 1 <span class="test-failed rounded py-2">0 9 8 7 6 5</span> 4 <span class="repl-method rounded py-2">3 2 1</span> <span class="repl-cause rounded py-2">0 9 8</span> <span class="changed rounded py-2">7</span> <span class="range rounded py-2">6 5</span> <span class="valid rounded py-2">4 3 2 1</span> <span class="screened rounded py-2">0</span></span>
+<span class="bg-white py-1 rounded-pill fw-light"><span class="protected rounded py-2">1</span> 0 9 8 7 6 <span class="test-failed rounded py-2">5 4 3 2 1 0 9 8 7 6 5</span> <span class="repl-method rounded py-2">4 3 2 1</span> <span class="repl-cause rounded py-2">0 9 8</span> <span class="changed rounded py-2">7</span> <span class="range rounded py-2">6 5</span> <span class="valid rounded py-2">4 3 2 1</span> <span class="screened rounded py-2">0</span></span>
 31                                                            0
-P - - - - - T - T - T T T T T T T - M M M C C C D R R V V V V S
-|           <- --- ---+--------->   <-+-> <-+-> | <+> <--+--> |  
-|                     |               |     |   |  |     |    +------<span id="SCREENED" class="screened p-1 rounded-pill">Screened T/F </span>
-|                     |               |     |   |  |     |
-|                     |               |     |   |  |     +---------<span id="VALID" class="valid p-1 rounded-pill">Validity Flags</span>
-|                     |               |     |   |  |
-|                     |               |     |   |  +-------------<span id="RANGE" class="range p-1 rounded-pill">Value Range Integer</span>
-|                     |               |     |   |
-|                     |               |     |   +--------------<span id="CHANGED" class="changed p-1 rounded-pill">Different T/F</span>
-|                     |               |     | 
-|                     |               |     +----------------<span id="CAUSE" class="repl-cause p-1 rounded-pill">Replacement Cause Integer</span>
-|                     |               |
+P - - - - - T T T T T T T T T T T M M M M C C C D R R V V V V S
+|           <---------+---------> <--+--> <-+-> | <+> <--+--> |  
+|                     |              |      |   |  |     |    +------<span id="SCREENED" class="screened p-1 rounded-pill">Screened T/F </span>
+|                     |              |      |   |  |     |
+|                     |              |      |   |  |     +---------<span id="VALID" class="valid p-1 rounded-pill">Validity Flags</span>
+|                     |              |      |   |  |
+|                     |              |      |   |  +-------------<span id="RANGE" class="range p-1 rounded-pill">Value Range Integer</span>
+|                     |              |      |   |
+|                     |              |      |   +--------------<span id="CHANGED" class="changed p-1 rounded-pill">Different T/F</span>
+|                     |              |      | 
+|                     |              |      +----------------<span id="CAUSE" class="repl-cause p-1 rounded-pill">Replacement Cause Integer</span>
+|                     |              | 
 |                     |              +---------------------<span id="METHOD" class="repl-method p-1 rounded-pill">Replacement Method Integer</span>
 |                     |
 |                     +----------------------------------<span id="TEST" class="test-failed p-1 rounded-pill">Test Failed Flags</span>
