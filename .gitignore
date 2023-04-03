@@ -3,3 +3,4 @@ jython*
 *.code-workspace
 *.xlsx
 *.tgz
+*.java
