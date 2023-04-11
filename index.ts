@@ -187,33 +187,33 @@ export class Quality {
 			// -----------------------------------------------------//
 			// ensure the replacement method is not greater than 4 //
 			// -----------------------------------------------------//
-			let repl_method: number = (tmp & REPL_METHOD_MASK) >>> REPL_METHOD_SHIFT;
+			let repl_method: number = (tmp & this.REPL_METHOD_MASK) >>> this.REPL_METHOD_SHIFT;
 			if(repl_method > 4)
 			{
 				repl_method = 4;
-				tmp |= repl_method << REPL_METHOD_SHIFT;
+				tmp |= repl_method << this.REPL_METHOD_SHIFT;
 			}
 			// ----------------------------------------------------------------------------------------------------------//
 			// ensure that if 2 of replacement cause, replacement method, and
 			// different are 0, the remaining one is too //
 			// ----------------------------------------------------------------------------------------------------------//
-			let different: boolean = (tmp & DIFFERENT_MASK) != 0;
+			let different: boolean = (tmp & this.DIFFERENT_MASK) != 0;
 			if(repl_cause == 0)
 			{
 				if(repl_method == 0 && different)
 				{
-					tmp &= NOT_DIFFERENT_MASK;
+					tmp &= this.NOT_DIFFERENT_MASK;
 					different = false;
 				}
 				else if(repl_method != 0 && !different)
 				{
-					tmp &= NO_REPL_METHOD_MASK;
+					tmp &= this.NO_REPL_METHOD_MASK;
 					repl_method = 0;
 				}
 			}
 			else if(repl_method == 0 && !different)
 			{
-				tmp &= NO_REPL_CAUSE_MASK;
+				tmp &= this.NO_REPL_CAUSE_MASK;
 				repl_cause = 0;
 			}
 			// --------------------------------------------------------------------------------------------------------------------------//
@@ -224,19 +224,19 @@ export class Quality {
 			{
 				if(repl_method != 0 && !different)
 				{
-					tmp |= DIFFERENT_MASK;
+					tmp |= this.DIFFERENT_MASK;
 					different = true;
 				}
 				else if(different && repl_method == 0)
 				{
 					repl_method = 2; // EXPLICIT
-					tmp |= repl_method << REPL_METHOD_SHIFT;
+					tmp |= repl_method << this.REPL_METHOD_SHIFT;
 				}
 			}
 			else if(different && repl_method != 0)
 			{
 				repl_cause = 3; // MANUAL
-				tmp &= repl_cause << REPL_CAUSE_SHIFT;
+				tmp &= repl_cause << this.REPL_CAUSE_SHIFT;
 			}
 		}
 		return tmp;
