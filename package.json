@@ -44,6 +44,7 @@
   "license": "MIT",
   "dependencies": {
     "js-joda": "^1.11.0",
+    "ts-treemap": "^1.1.0",
     "typescript-collections": "^1.3.3"
   }
 }

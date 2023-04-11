@@ -1,7 +1,16 @@
 import pako from 'pako';
-import NavigableMap from 'typescript-collections';
+import TreeMap from 'ts-treemap'
 import { ZonedDateTime, Instant, ZoneId } from 'js-joda';
 
+
+
+const BINARY_STRING = 0;
+const OCTAL_STRING = 1;
+const HEX_STRING = 2;
+const INTEGER_STRING = 3;
+const SYMBOLIC_STRING = 4;
+const SYMBOLIC_REVISED_STRING = 5;
+const SYMBOLIC_TESTS_STRING = 6;
 export class Quality {
   static readonly serialVersionUID = 5287976742565108510n;
   public static QUALITY_FLAGS_EDITABLE = "quality_flags_editable";
@@ -48,7 +57,7 @@ export class Quality {
   private static readonly PROTECTED_BIT = 32;
 
   private static MASK: number[] = [1, 2, 4, 8, 16, 32, 64, 128];
-  static MASK_BYTE: Int32Array = new Int32Array(32);
+  static readonly MASK_BYTE: number = 0xff;
 
   private static readonly USED_BITS_MASK: number = -2090860545; // 1000 0011 0101
   // 1111 1111 1111
@@ -187,33 +196,33 @@ export class Quality {
 			// -----------------------------------------------------//
 			// ensure the replacement method is not greater than 4 //
 			// -----------------------------------------------------//
-			let repl_method: number = (tmp & this.REPL_METHOD_MASK) >>> this.REPL_METHOD_SHIFT;
+			let repl_method: number = (tmp & Quality.REPL_METHOD_MASK) >>> Quality.REPL_METHOD_SHIFT;
 			if(repl_method > 4)
 			{
 				repl_method = 4;
-				tmp |= repl_method << this.REPL_METHOD_SHIFT;
+				tmp |= repl_method << Quality.REPL_METHOD_SHIFT;
 			}
 			// ----------------------------------------------------------------------------------------------------------//
 			// ensure that if 2 of replacement cause, replacement method, and
 			// different are 0, the remaining one is too //
 			// ----------------------------------------------------------------------------------------------------------//
-			let different: boolean = (tmp & this.DIFFERENT_MASK) != 0;
+			let different: boolean = (tmp & Quality.DIFFERENT_MASK) != 0;
 			if(repl_cause == 0)
 			{
 				if(repl_method == 0 && different)
 				{
-					tmp &= this.NOT_DIFFERENT_MASK;
+					tmp &= Quality.NOT_DIFFERENT_MASK;
 					different = false;
 				}
 				else if(repl_method != 0 && !different)
 				{
-					tmp &= this.NO_REPL_METHOD_MASK;
+					tmp &= Quality.NO_REPL_METHOD_MASK;
 					repl_method = 0;
 				}
 			}
 			else if(repl_method == 0 && !different)
 			{
-				tmp &= this.NO_REPL_CAUSE_MASK;
+				tmp &= Quality.NO_REPL_CAUSE_MASK;
 				repl_cause = 0;
 			}
 			// --------------------------------------------------------------------------------------------------------------------------//
@@ -224,19 +233,19 @@ export class Quality {
 			{
 				if(repl_method != 0 && !different)
 				{
-					tmp |= this.DIFFERENT_MASK;
+					tmp |= Quality.DIFFERENT_MASK;
 					different = true;
 				}
 				else if(different && repl_method == 0)
 				{
 					repl_method = 2; // EXPLICIT
-					tmp |= repl_method << this.REPL_METHOD_SHIFT;
+					tmp |= repl_method << Quality.REPL_METHOD_SHIFT;
 				}
 			}
 			else if(different && repl_method != 0)
 			{
 				repl_cause = 3; // MANUAL
-				tmp &= repl_cause << this.REPL_CAUSE_SHIFT;
+				tmp &= repl_cause << Quality.REPL_CAUSE_SHIFT;
 			}
 		}
 		return tmp;
@@ -275,11 +284,11 @@ export class Quality {
 
 	public static emptyQualityValue(): number
 	{
-		return this.NULL_VALUE
+		return Quality.NULL_VALUE
 	}
 
     public static emptyBytes(): Uint32Array {
-        return new Uint32Array([this.NULL_VALUE, this.NULL_VALUE, this.NULL_VALUE, this.NULL_VALUE]);
+        return new Uint32Array([Quality.NULL_VALUE, Quality.NULL_VALUE, Quality.NULL_VALUE, Quality.NULL_VALUE]);
     }
 
 	public getQuality(): Uint32Array
@@ -318,19 +327,19 @@ export class Quality {
 
 	getIntegerAt(elementIndex: number): number {
         const bytes: Uint32Array = this.getElementAt(elementIndex);
-        const i0: number = bytes[0] & this.MASK_BYTE;
-        const i1: number = bytes[1] & this.MASK_BYTE;
-        const i2: number = bytes[2] & this.MASK_BYTE;
-        const i3: number = bytes[3] & this.MASK_BYTE;
+        const i0: number = bytes[0] & Quality.MASK_BYTE;
+        const i1: number = bytes[1] & Quality.MASK_BYTE;
+        const i2: number = bytes[2] & Quality.MASK_BYTE;
+        const i3: number = bytes[3] & Quality.MASK_BYTE;
         const result: number = i3 | (i2 << 8) | (i1 << 16) | (i0 << 24);
         return result;
     }
 
 	static getInteger(bytes: Uint32Array): number {
-        const i0: number = bytes[0] & this.MASK_BYTE;
-        const i1: number = bytes[1] & this.MASK_BYTE;
-        const i2: number = bytes[2] & this.MASK_BYTE;
-        const i3: number = bytes[3] & this.MASK_BYTE;
+        const i0: number = bytes[0] & Quality.MASK_BYTE;
+        const i1: number = bytes[1] & Quality.MASK_BYTE;
+        const i2: number = bytes[2] & Quality.MASK_BYTE;
+        const i3: number = bytes[3] & Quality.MASK_BYTE;
         const result: number = i3 | (i2 << 8) | (i1 << 16) | (i0 << 24);
         return result;
     }
@@ -338,18 +347,13 @@ export class Quality {
     setIntegerAt(intQuality: number, elementIndex: number): void 
     {
         const bytes: Uint32Array = new Uint32Array(4);
-        bytes[3] = intQuality & this.MASK_BYTE;
-        bytes[2] = (intQuality >> 8) & this.MASK_BYTE;
-        bytes[1] = (intQuality >> 16) & this.MASK_BYTE;
-        bytes[0] = (intQuality >> 24) & this.MASK_BYTE;
+        bytes[3] = intQuality & Quality.MASK_BYTE;
+        bytes[2] = (intQuality >> 8) & Quality.MASK_BYTE;
+        bytes[1] = (intQuality >> 16) & Quality.MASK_BYTE;
+        bytes[0] = (intQuality >> 24) & Quality.MASK_BYTE;
         this.setElementAt(bytes, elementIndex);
     }
 
-    static getBytes(intQuality: number): Uint32Array {
-        const bytes: Uint32Array = new Uint32Array(4);
-        this.getBytes(intQuality, bytes);
-        return bytes;
-    }
 	/**
 	 * Fills the byte array with the 4 8-bit slices of an integer. The HI bytes
 	 * of the integer are in slot 0 and the LOW bytes are in slot 3. The byte
@@ -358,15 +362,21 @@ export class Quality {
 	 * @param intQuality the integer to parse
 	 * @param bytes      the byte array to fill from Hi to Lo (0-4)
 	 */
-    public static getBytes(intQuality: number, bytes: Uint32Array): void 
+    public static getBytes(intQuality: number, bytes: Uint32Array | undefined): Uint32Array | undefined 
     {
-        if (!bytes || bytes.length !== 4) {
+        if (!bytes) {
+            let bytes: Uint32Array = new Uint32Array(4);
+            Quality.getBytes(intQuality, bytes);
+            return bytes;
+        }
+        if (bytes.length !== 4) {
             throw new Error("<ERROR> QualityTx.getBytes(int,byte[]) : Byte array must be of size 4 before passed to this method");
         }
-        bytes[3] = intQuality & MASK_BYTE;
-        bytes[2] = (intQuality >> 8) & MASK_BYTE;
-        bytes[1] = (intQuality >> 16) & MASK_BYTE;
-        bytes[0] = (intQuality >> 24) & MASK_BYTE;
+        bytes[3] = intQuality & Quality.MASK_BYTE;
+        bytes[2] = (intQuality >> 8) & Quality.MASK_BYTE;
+        bytes[1] = (intQuality >> 16) & Quality.MASK_BYTE;
+        bytes[0] = (intQuality >> 24) & Quality.MASK_BYTE;
+        return
     }
     
     public setElementAt(bytes: Uint32Array, elementIndex: number): void 
@@ -375,18 +385,18 @@ export class Quality {
             throw new Error(`Index of: ${elementIndex} Out of range[0 - ${this._size}]`);
         }
 
-        const qualityInt: number = (bytes[0] & MASK_BYTE) << 24
-            | (bytes[1] & MASK_BYTE) << 16
-            | (bytes[2] & MASK_BYTE) << 8
-            | (bytes[3] & MASK_BYTE);
+        const qualityInt: number = (bytes[0] & Quality.MASK_BYTE) << 24
+            | (bytes[1] & Quality.MASK_BYTE) << 16
+            | (bytes[2] & Quality.MASK_BYTE) << 8
+            | (bytes[3] & Quality.MASK_BYTE);
 
         const cleanedInt: number = Quality.cleanQualityInteger(qualityInt);
 
         const cleanedBytes: Uint32Array = new Uint32Array([
-            cleanedInt >>> 24 & MASK_BYTE,
-            cleanedInt >>> 16 & MASK_BYTE,
-            cleanedInt >>> 8 & MASK_BYTE,
-            cleanedInt & MASK_BYTE,
+            cleanedInt >>> 24 & Quality.MASK_BYTE,
+            cleanedInt >>> 16 & Quality.MASK_BYTE,
+            cleanedInt >>> 8 & Quality.MASK_BYTE,
+            cleanedInt & Quality.MASK_BYTE,
         ]);
 
         const byteIndex = elementIndex * Quality.ELEMENT_SIZE_IN_BYTES;
@@ -399,96 +409,96 @@ export class Quality {
     public static isAccepted(bytes: Uint32Array): boolean {
         // No Revision Replacement Method set 0 = 0000
         // "A" for Original Value is Accepted
-        return (this.isBitSet(bytes, this.SCREENED_BIT)
-             && this.isBitSet(bytes,  this.OKAY_BIT)
-             && this.isBitClear(bytes,  this.MISSING_BIT)
-             && this.isBitClear(bytes,  this.QUESTION_BIT)
-             && this.isBitClear(bytes,  this.REJECT_BIT)
-             && this.isBitClear(bytes,  this.HOW_REVISED_BIT0)
-             && this.isBitClear(bytes,  this.HOW_REVISED_BIT1)
-             && this.isBitSet(bytes,  this.HOW_REVISED_BIT2)
-             && this.isBitClear(bytes,  this.REPLACE_METHOD_BIT0)
-             && this.isBitClear(bytes,  this.REPLACE_METHOD_BIT1)
-             && this.isBitClear(bytes,  this.REPLACE_METHOD_BIT2)
-             && this.isBitClear(bytes,  this.REPLACE_METHOD_BIT3));
+        return (Quality.isBitSet(bytes, Quality.SCREENED_BIT)
+             && Quality.isBitSet(bytes,  Quality.OKAY_BIT)
+             && Quality.isBitClear(bytes,  Quality.MISSING_BIT)
+             && Quality.isBitClear(bytes,  Quality.QUESTION_BIT)
+             && Quality.isBitClear(bytes,  Quality.REJECT_BIT)
+             && Quality.isBitClear(bytes,  Quality.HOW_REVISED_BIT0)
+             && Quality.isBitClear(bytes,  Quality.HOW_REVISED_BIT1)
+             && Quality.isBitSet(bytes,  Quality.HOW_REVISED_BIT2)
+             && Quality.isBitClear(bytes,  Quality.REPLACE_METHOD_BIT0)
+             && Quality.isBitClear(bytes,  Quality.REPLACE_METHOD_BIT1)
+             && Quality.isBitClear(bytes,  Quality.REPLACE_METHOD_BIT2)
+             && Quality.isBitClear(bytes,  Quality.REPLACE_METHOD_BIT3));
     }
 
 	public static isAccepted_int(intQuality: number): boolean
 	{
 		// No Revision Replacement Method set 0 = 0000
 		// "A" for Original Value is Accepted
-		return (this.isBitSet_int(intQuality, this.SCREENED_BIT)
-				&& this.isBitSet_int(intQuality, this.OKAY_BIT)
-				&& this.isBitClear_int(intQuality, this.MISSING_BIT)
-				&& this.isBitClear_int(intQuality, this.QUESTION_BIT)
-				&& this.isBitClear_int(intQuality, this.REJECT_BIT)
-				&& this.isBitClear_int(intQuality, this.HOW_REVISED_BIT0)
-				&& this.isBitClear_int(intQuality, this.HOW_REVISED_BIT1)
-				&& this.isBitSet_int(intQuality, this.HOW_REVISED_BIT2)
-				&& this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT0)
-				&& this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT1)
-				&& this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT2) 
-                && this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT3));
+		return (Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)
+				&& Quality.isBitSet_int(intQuality, Quality.OKAY_BIT)
+				&& Quality.isBitClear_int(intQuality, Quality.MISSING_BIT)
+				&& Quality.isBitClear_int(intQuality, Quality.QUESTION_BIT)
+				&& Quality.isBitClear_int(intQuality, Quality.REJECT_BIT)
+				&& Quality.isBitClear_int(intQuality, Quality.HOW_REVISED_BIT0)
+				&& Quality.isBitClear_int(intQuality, Quality.HOW_REVISED_BIT1)
+				&& Quality.isBitSet_int(intQuality, Quality.HOW_REVISED_BIT2)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT2) 
+                && Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public static isInterpolated(bytes: Uint32Array): boolean 
 	{
 		// Linear Interpolation Replacement Method set 1 = 0001
 		// "I" for Interpolated Value
-		return (this.isBitSet(bytes, this.REPLACE_METHOD_BIT0)
-				&& this.isBitClear(bytes, this.REPLACE_METHOD_BIT1)
-				&& this.isBitClear(bytes, this.REPLACE_METHOD_BIT2) 
-                && this.isBitClear(bytes, this.REPLACE_METHOD_BIT3));
+		return (Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT2) 
+                && Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public static isInterpolated_int(intQuality: number): boolean 
 	{
 		// Linear Interpolation Replacement Method set 1 = 0001
 		// "I" for Interpolated Value
-		return (this.isBitSet_int(intQuality, this.REPLACE_METHOD_BIT0)
-				&& this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT1)
-				&& this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT2) 
-                && this.isBitClear_int(intQuality, this.REPLACE_METHOD_BIT3));
+		return (Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT2) 
+                && Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public static isKeyboardInput(bytes: Uint32Array): boolean
 	{
 		// Manual Change Replacement Method set 2 = 0010
 		// "K" for Keyboard Input
-		return (this.isBitClear(bytes, this.REPLACE_METHOD_BIT0)
-				&& this.isBitSet(bytes, this.REPLACE_METHOD_BIT1)
-				&& this.isBitClear(bytes, this.REPLACE_METHOD_BIT2) 
-                && this.isBitClear(bytes, this.REPLACE_METHOD_BIT3));
+		return (Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT2) 
+                && Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public static isKeyboardInput_int(intQuality: number): boolean 
 	{
 		// Manual Change Replacement Method set 2 = 0010
 		// "K" for Keyboard Input
-		return (isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
-				&& isBitSet_int(intQuality, REPLACE_METHOD_BIT1)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT2) && isBitClear_int(
-				intQuality, REPLACE_METHOD_BIT3));
+		return (Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT2) && Quality.isBitClear_int(
+				intQuality, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public static isGraphicalEstimate(bytes: Uint32Array): boolean
 	{
 		// Manual Change Replacement Method set 4 = 0100
 		// "E" for Graphical Estimate
-		return (isBitClear(bytes, REPLACE_METHOD_BIT0)
-				&& isBitClear(bytes, REPLACE_METHOD_BIT1)
-				&& isBitSet(bytes, REPLACE_METHOD_BIT2) && isBitClear(bytes,
-				REPLACE_METHOD_BIT3));
+		return (Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT2) 
+                && Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public static isGraphicalEstimate_int(intQuality: number): boolean
 	{
 		// Manual Change Replacement Method set 4 = 0100
 		// "E" for Graphical Estimate
-		return (isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT1)
-				&& isBitSet_int(intQuality, REPLACE_METHOD_BIT2) && isBitClear_int(
-				intQuality, REPLACE_METHOD_BIT3));
+		return (Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT2) && Quality.isBitClear_int(
+				intQuality, Quality.REPLACE_METHOD_BIT3));
 	}
 
 	public isMissing(elementIndex: number): boolean
@@ -499,27 +509,27 @@ export class Quality {
 		// throw new DataSetTxQualityFlagException(
 		// "Method: <isMissing> Element not screened: " + elementIndex);
 		// }
-		return isBitSet(elementIndex, MISSING_BIT);
+		return this.isBitSet(elementIndex, Quality.MISSING_BIT);
 	}
 
 	public isNotMissing(elementIndex: number): boolean
 	{
-		return isBitClear(elementIndex, MISSING_BIT);
+		return Quality.isBitClear_int(elementIndex, Quality.MISSING_BIT);
 	}
 
 	public clearMissing(elementIndex: number): void
 	{
-		clearBit(elementIndex, MISSING_BIT);
-		setBit(elementIndex, SCREENED_BIT);
+		Quality.clearBit(elementIndex, Quality.MISSING_BIT);
+		Quality.setBit(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public setMissing(elementIndex: number): void
 	{
-		setBit(elementIndex, MISSING_BIT);
-		clearBit(elementIndex, OKAY_BIT);
-		clearBit(elementIndex, QUESTION_BIT);
-		clearBit(elementIndex, REJECT_BIT);
-		setBit(elementIndex, SCREENED_BIT);
+		Quality.setBit_int(elementIndex, Quality.MISSING_BIT);
+		Quality.clearBit_int(elementIndex, Quality.OKAY_BIT);
+		Quality.clearBit_int(elementIndex, Quality.QUESTION_BIT);
+		Quality.clearBit_int(elementIndex, Quality.REJECT_BIT);
+		Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public static isMissing(bytes: Uint32Array): boolean
@@ -530,141 +540,132 @@ export class Quality {
 		// throw new DataSetTxQualityFlagException(
 		// "Method: <isMissing> Element not screened: " + bytes);
 		// }
-		return isBitSet(bytes, MISSING_BIT);
+		return Quality.isBitSet(bytes, Quality.MISSING_BIT);
 	}
 
 	public static isMissing_int(intQuality: number): boolean
 	{
-		return isBitSet_int(intQuality, SCREENED_BIT)
-				&& isBitSet_int(intQuality, MISSING_BIT);
+		return Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)
+				&& Quality.isBitSet_int(intQuality, Quality.MISSING_BIT);
 	}
 
 	public static isNotMissing(bytes: Uint32Array): boolean
 	// throws DataSetTxQualityFlagException
 	{
-		return !isMissing(bytes);
+		return !Quality.isMissing(bytes);
 	}
 
 	public static isNotMissing_int(intQuality: number): boolean
 	// throws DataSetTxQualityFlagException
 	{
-		return !isMissing_int(intQuality);
+		return !Quality.isMissing_int(intQuality);
 	}
 
 	public static clearMissing(bytes: Uint32Array): Uint32Array
 	{
-		const tmp: Uint32Array = clearBit(bytes, MISSING_BIT);
-		return setBit(tmp, SCREENED_BIT);
+		const tmp: Uint32Array = Quality.clearBit(bytes, Quality.MISSING_BIT);
+		return Quality.setBit(tmp, Quality.SCREENED_BIT);
 	}
 
 	public static clearMissing_int(intQuality: number): int
 	{
-		return setBit_int(clearBit_int(intQuality, MISSING_BIT), SCREENED_BIT);
+		return Quality.setBit_int(Quality.clearBit_int(intQuality, Quality.MISSING_BIT), Quality.SCREENED_BIT);
 	}
 
 	public static setMissing(bytes: Uint32Array): Uint32Array
 	{
-		let tmp: Uint32Array = setBit(bytes, MISSING_BIT);
-		tmp = clearBit(tmp, OKAY_BIT);
-		tmp = clearBit(tmp, QUESTION_BIT);
-		tmp = clearBit(tmp, REJECT_BIT);
-		return setBit(tmp, SCREENED_BIT);
+		let tmp: Uint32Array = Quality.setBit(bytes, Quality.MISSING_BIT);
+		tmp = Quality.clearBit(tmp, Quality.OKAY_BIT);
+		tmp = Quality.clearBit(tmp, Quality.QUESTION_BIT);
+		tmp = Quality.clearBit(tmp, Quality.REJECT_BIT);
+		return Quality.setBit(tmp, Quality.SCREENED_BIT);
 	}
 
 	public static setMissing_int(intQuality: number): int
 	{
-		let tmp: int = setBit_int(intQuality, MISSING_BIT);
-		tmp = clearBit_int(tmp, OKAY_BIT);
-		tmp = clearBit_int(tmp, QUESTION_BIT);
-		tmp = clearBit_int(tmp, REJECT_BIT);
-		return setBit_int(tmp, SCREENED_BIT);
+		let tmp: int = Quality.setBit_int(intQuality, Quality.MISSING_BIT);
+		tmp = Quality.clearBit_int(tmp, Quality.OKAY_BIT);
+		tmp = Quality.clearBit_int(tmp, Quality.QUESTION_BIT);
+		tmp = Quality.clearBit_int(tmp, Quality.REJECT_BIT);
+		return Quality.setBit_int(tmp, Quality.SCREENED_BIT);
 	}
 
 	public isProtected(elementIndex: number): boolean
 	{
-		return isScreened(elementIndex)
-				&& isBitSet(elementIndex, PROTECTED_BIT);
+		return Quality.isScreened(elementIndex)
+				&& Quality.isBitSet(elementIndex, Quality.PROTECTED_BIT);
 	}
 
 	public isNotProtected(elementIndex: number): boolean
 	{
-		return !isProtected(elementIndex);
+		return !Quality.isProtected(elementIndex);
 	}
 
 	public clearProtected(elementIndex: number): void
 	{
-		clearBit(elementIndex, PROTECTED_BIT);
-		setBit(elementIndex, SCREENED_BIT);
+		Quality.clearBit(elementIndex, Quality.PROTECTED_BIT);
+		Quality.setBit(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public setProtected(elementIndex: number): void
 	{
-		setBit(elementIndex, PROTECTED_BIT);
-		setBit(elementIndex, SCREENED_BIT);
+		Quality.setBit(elementIndex, Quality.PROTECTED_BIT);
+		Quality.setBit(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public static isProtected(bytes: Uint32Array): boolean
 	// throws DataSetTxQualityFlagException
 	{
-		return isBitSet(bytes, PROTECTED_BIT);
+		return Quality.isBitSet(bytes, Quality.PROTECTED_BIT);
 	}
 
 	public static isProtected_int(intQuality: number): boolean
 	// throws DataSetTxQualityFlagException
 	{
-		return isBitSet_int(intQuality, PROTECTED_BIT);
+		return Quality.isBitSet_int(intQuality, Quality.PROTECTED_BIT);
 	}
 
 	public static isNotProtected(bytes: Uint32Array): boolean
 	// throws DataSetTxQualityFlagException
 	{
-		return !isProtected(bytes);
+		return !Quality.isProtected(bytes);
 	}
 
 	public static isNotProtected_int(intQuality: number): boolean
 	// throws DataSetTxQualityFlagException
 	{
-		return !isProtected_int(intQuality);
+		return !Quality.isProtected_int(intQuality);
 	}
 
 	public static clearProtected(bytes: Uint32Array): Uint32Array
 	{
-		const tmp: Uint32Array = clearBit(bytes, PROTECTED_BIT);
-		return setBit(tmp, SCREENED_BIT);
+		const tmp: Uint32Array = Quality.clearBit(bytes, Quality.PROTECTED_BIT);
+		return Quality.setBit(tmp, Quality.SCREENED_BIT);
 	}
 
 	public static clearProtected_int(intQuality: number): int
 	{
-		return setBit_int(clearBit_int(intQuality, PROTECTED_BIT), SCREENED_BIT);
+		return Quality.setBit_int(Quality.clearBit_int(intQuality, Quality.PROTECTED_BIT), Quality.SCREENED_BIT);
 	}
 
 	public static setProtected(bytes: Uint32Array): Uint32Array
 	{
-		return setBit(setBit(bytes, PROTECTED_BIT), SCREENED_BIT);
+		return Quality.setBit(Quality.setBit(bytes, Quality.PROTECTED_BIT), Quality.SCREENED_BIT);
 	}
 
 	public static setProtected_int(intQuality: number): int
 	{
-		return setBit_int(setBit_int(intQuality, PROTECTED_BIT), SCREENED_BIT);
-	}
-
-	public static isBitSet(bytes: Uint32Array, bitPosition: number): boolean
-	{
-		let targetByte: number = ((32 - bitPosition) / 8);
-		targetBit = (bitPosition - 1) % 8;
-		base = bytes[targetByte];
-		result = base & MASK[targetBit];
-		return (result != 0);
+		return Quality.setBit_int(Quality.setBit_int(intQuality, Quality.PROTECTED_BIT), Quality.SCREENED_BIT);
 	}
 
 	public static isBitClear(bytes: Uint32Array, bitPosition: number): boolean 
 	{
-		return !isBitSet(bytes, bitPosition);
+		return !Quality.isBitSet(bytes, bitPosition);
 	}
 
 	public static isQualityClear(bytes: Uint32Array): boolean
 	{
-		return getInteger(bytes) == 0;
+		return Quality.getInteger(bytes) == 0;
 	}
 
 	public static isQualityClear_int(intQuality: number): boolean
@@ -682,30 +683,37 @@ export class Quality {
 		return (intQuality & (1 << (bitPosition - 1))) == 0;
 	}
 
-	public static setBit_int(intQuality: number, bitPosition: number): int
+	public static setBit_int(intQuality: number, bitPosition: number): number
 	{
 		return intQuality | (1 << (bitPosition - 1));
 	}
 
-	public static clearBit_int(intQuality: number, bitPosition: number): int
+	public static clearBit_int(intQuality: number, bitPosition: number): number
 	{
 		return intQuality & ~(1 << (bitPosition - 1));
 	}
 
 	public isBitSet(elementIndex: number, bitPosition: number): boolean
 	{
-		if((elementIndex > _size) || (elementIndex < 0))
+		if((elementIndex > this._size) || (elementIndex < 0))
 		{
-			throw new ArrayIndexOutOfBoundsException("Index of: "
-					+ elementIndex + " Out of range[0 - " + _size + "]");
+			throw new RangeError("Index of: "
+					+ elementIndex + " Out of range[0 - " + this._size + "]");
 		}
-		bytes: Uint32Array = getElementAt(elementIndex);
-		return isBitSet(bytes, bitPosition);
+		const bytes: Uint32Array = this.getElementAt(elementIndex);
+		return Quality.isBitSet(bytes, bitPosition);
+	}
+    public static isBitSet(bytes: Uint32Array, bitPosition: number): boolean
+	{
+		const targetByte = Math.floor((32 - bitPosition) / 8);
+		const targetBit = (bitPosition - 1) % 8;
+		const base = bytes[targetByte];
+		return (base & Quality.MASK[targetBit]) != 0;
 	}
 
 	public isBitClear(elementIndex: number, bitPosition: number): boolean
 	{
-		return !isBitSet(elementIndex, bitPosition);
+		return !this.isBitSet(elementIndex, bitPosition);
 	}
 
 	public isQualityClear(elementIndex: number): boolean
@@ -713,106 +721,95 @@ export class Quality {
 		return this.getIntegerAt(elementIndex) == 0;
 	}
 
-	public setBit(elementIndex: number, bitPosition: number): void
+	public static setBit(bytes: Uint32Array, bitPosition: number): Uint32Array
 	{
-		if((elementIndex > _size) || (elementIndex < 0))
+		const targetByte = Math.floor((32 - bitPosition) / 8);
+		const base = bytes[targetByte];
+		const targetBit = (bitPosition - 1) % 8;
+		bytes[targetByte] = base | Quality.MASK[targetBit];
+		return bytes;
+	}
+
+    public clearBit(elementIndex: number, bitPosition: number): void
+	{
+		if((elementIndex > this._size) || (elementIndex < 0))
 		{
-			throw new ArrayIndexOutOfBoundsException("Index of: "
-					+ elementIndex + " Out of range[0 - " + _size);
+			throw new RangeError("Index of: "
+					+ elementIndex + " Out of range[0 - " + this._size);
 		}
-		let bytes: Uint32Array = getElementAt(elementIndex);
-		bytes = setBit(bytes, bitPosition);
-		setElementAt(bytes, elementIndex);
+		let bytes: Uint32Array = this.getElementAt(elementIndex);
+		bytes = Quality.clearBit(bytes, bitPosition);
+		this.setElementAt(bytes, elementIndex);
 		return;
 	}
 
-    public static setBit(bytes: Uint8Array, bitPosition: number): Uint8Array {
-        const targetByte: number = Math.floor((32 - bitPosition) / 8);
-        const base = bytes[targetByte];
-        const targetBit = (bitPosition - 1) % 8;
-        const result = base | this.MASK[targetBit];
-        bytes[targetByte] = result;
-        return bytes;
-    }
-
-    public clearBit(elementIndex: number, bitPosition: number): void {
-        if (elementIndex > this._size || elementIndex < 0) {
-            throw new RangeError(
-            `Index of: ${elementIndex} Out of range[0 - ${this._size}]`
-            );
-        }
-        let bytes = this.getElementAt(elementIndex);
-        bytes = this.clearBit(bytes, bitPosition);
-        this.setElementAt(bytes, elementIndex);
-    }
-
-    
-    public static clearBit(bytes: Uint8Array, bitPosition: number): Uint8Array {
-        const targetByte = Math.floor((32 - bitPosition) / 8);
-        const base = bytes[targetByte];
-        const targetBit = (bitPosition - 1) % 8;
-        let result = base & this.MASK[targetBit];
-        if (result !== 0) {
-            result = base ^ this.MASK[targetBit];
-            bytes[targetByte] = result;
-        }
-        return bytes;
-    }
+	public static clearBit(bytes: Uint32Array, bitPosition: number): Uint32Array
+	{
+		const targetByte: number = Math.floor((32 - bitPosition) / 8);
+		const base: number = bytes[targetByte];
+		const targetBit: number = (bitPosition - 1) % 8;
+		let result: number = base & Quality.MASK[targetBit];
+		if(result != 0)
+		{
+			bytes[targetByte] = base ^ Quality.MASK[targetBit];
+		}
+		return bytes;
+	}
 
 	public isScreened(elementIndex: number): boolean
 	{
-		return this.isBitSet(elementIndex, this.SCREENED_BIT);
+		return this.isBitSet(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public isNotScreened(elementIndex: number): boolean
 	{
-		return this.isBitClear(elementIndex, this.SCREENED_BIT);
+		return this.isBitClear(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public clearQuality(elementIndex: number): void
 	{
 		// Clear all quality bits
-		let tmpBytes: Uint32Array = getElementAt(elementIndex);
+		let tmpBytes: Uint32Array = this.getElementAt(elementIndex);
 		let sizeInBytes: number = tmpBytes.length;
 		if(sizeInBytes > 0)
 		{
-			byte tmpByte = (byte) (0 & MASK_BYTE);
-			for(int i = 0; i < sizeInBytes; i++)
+			const tmpByte: number = 0 & Quality.MASK_BYTE;
+			for(let i = 0; i < sizeInBytes; i++)
 			{
 				tmpBytes[i] = tmpByte;
 			}
-			setElementAt(tmpBytes, elementIndex);
+			this.setElementAt(tmpBytes, elementIndex);
 		}
 	}
 
 	public clearScreened(elementIndex: number): void
 	{
-		clearBit(elementIndex, SCREENED_BIT);
+		this.clearBit(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public setScreened(elementIndex: number): void
 	{
-		setBit(elementIndex, SCREENED_BIT);
+		this.setBit(elementIndex, Quality.SCREENED_BIT);
 	}
 
 	public static isScreened(bytes: Uint32Array): boolean
 	{
-		return isBitSet(bytes, SCREENED_BIT);
+		return Quality.isBitSet(bytes, Quality.SCREENED_BIT);
 	}
 
 	public static isScreened_int(intQuality: number): boolean
 	{
-		return isBitSet_int(intQuality, SCREENED_BIT);
+		return Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT);
 	}
 
 	public static isNotScreened(bytes: Uint32Array): boolean
 	{
-		return isBitClear(bytes, SCREENED_BIT);
+		return Quality.isBitClear(bytes, Quality.SCREENED_BIT);
 	}
 
 	public static isNotScreened_int(intQuality: number): boolean
 	{
-		return isBitClear_int(intQuality, SCREENED_BIT);
+		return Quality.isBitClear_int(intQuality, Quality.SCREENED_BIT);
 	}
 
 	public static clearQuality(bytes: Uint32Array): Uint32Array | null {
@@ -823,7 +820,7 @@ export class Quality {
         const sizeInBytes: number = bytes.length;
         const tmpBytes: Uint32Array = new Uint32Array(sizeInBytes);
         if (sizeInBytes > 0) {
-            const tmpByte: number = 0 & this.MASK_BYTE;
+            const tmpByte: number = 0 & Quality.MASK_BYTE;
             for (let i = 0; i < sizeInBytes; i++) {
                 tmpBytes[i] = tmpByte;
             }
@@ -831,13 +828,12 @@ export class Quality {
         return tmpBytes;
     }
 
-	public static clearQuality_int(intQuality: number): int
-	{
-		return 0;
-	}
-
-	public static clearQuality_int(qualityAsIntegers: number[]): number[]
-	{
+	public static clearQuality_int(qualityAsIntegers: number[] | number): number[] | number | null
+    {
+        if (typeof qualityAsIntegers === 'number') 
+        {
+            return 0
+        }
 		if(qualityAsIntegers === null)
 		{
 			return null;
@@ -851,7 +847,7 @@ export class Quality {
 
 	public static clearScreened(bytes: Uint32Array): Uint32Array
 	{
-		return this.clearBit(bytes, this.SCREENED_BIT);
+		return Quality.clearBit(bytes, Quality.SCREENED_BIT);
 	}
 
 	public static clearScreened_int(intQuality: number): number
@@ -1117,9 +1113,9 @@ export class Quality {
 	{
 		return (isBitSet_int(intQuality, SCREENED_BIT)
 				&& isBitSet_int(intQuality, OKAY_BIT)
-				&& isBitClear_int(intQuality, MISSING_BIT)
-				&& isBitClear_int(intQuality, QUESTION_BIT)
-				&& isBitClear_int(intQuality, REJECT_BIT)
+				&& Quality.isBitClear_int(intQuality, MISSING_BIT)
+				&& Quality.isBitClear_int(intQuality, QUESTION_BIT)
+				&& Quality.isBitClear_int(intQuality, REJECT_BIT)
 				&& isBitSet_int(intQuality, VALUE_DIFFERS_BIT)
 
 				&& isRevisedInteractively_int(intQuality)
@@ -1139,9 +1135,9 @@ export class Quality {
 	{
 		// DATVUE or Interactive Process has performed revision
 		// Value = 2 as bit pattern 010
-		return isBitClear_int(intQuality, HOW_REVISED_BIT0)
+		return Quality.isBitClear_int(intQuality, HOW_REVISED_BIT0)
 				&& isBitSet_int(intQuality, HOW_REVISED_BIT1)
-				&& isBitClear_int(intQuality, HOW_REVISED_BIT2);
+				&& Quality.isBitClear_int(intQuality, HOW_REVISED_BIT2);
 	}
 
 	public setRevisedInteractively(elementIndex: number): void
@@ -1260,7 +1256,7 @@ export class Quality {
 		return setBit(tmp, SCREENED_BIT);
 	}
 
-	public static int clearReject_int(intQuality: number)
+	public static clearReject_int(intQuality: number): number
 	{
 		return setBit_int(clearBit_int(intQuality, REJECT_BIT), SCREENED_BIT);
 	}
@@ -1274,9 +1270,9 @@ export class Quality {
 		return setBit(tmp, SCREENED_BIT);
 	}
 
-	public static int setReject_int(intQuality: number)
+	public static setReject_int(intQuality: number): number
 	{
-		int tmp = setBit_int(intQuality, REJECT_BIT);
+		let tmp: number = setBit_int(intQuality, REJECT_BIT);
 		tmp = clearBit_int(tmp, OKAY_BIT);
 		tmp = clearBit_int(tmp, QUESTION_BIT);
 		tmp = clearBit_int(tmp, MISSING_BIT);
@@ -1289,7 +1285,7 @@ export class Quality {
 		return clearBit(tmp, RANGE_OF_VALUE_BIT1);
 	}
 
-	public static int clearRange_int(intQuality: number)
+	public static clearRange_int(intQuality: number): number
 	{
 		return clearBit_int(clearBit_int(intQuality, RANGE_OF_VALUE_BIT0),
 				RANGE_OF_VALUE_BIT1);
@@ -1303,7 +1299,7 @@ export class Quality {
 		return clearBit(tmp, RANGE_OF_VALUE_BIT1);
 	}
 
-	public static int setRange0_int(intQuality: number)
+	public static setRange0_int(intQuality: number): number
 	{
 		// Range of value is below first limit
 		// Set value = 0 as bit pattern 00
@@ -1324,7 +1320,7 @@ export class Quality {
 		// Range of value is between first and second limits
 		// Value = 1 as bit pattern 01
 		return isBitSet_int(intQuality, RANGE_OF_VALUE_BIT0)
-				&& isBitClear_int(intQuality, RANGE_OF_VALUE_BIT1);
+				&& Quality.isBitClear_int(intQuality, RANGE_OF_VALUE_BIT1);
 	}
 
 	public static byte[] setRange1(bytes: Uint32Array)
@@ -1335,7 +1331,7 @@ export class Quality {
 		return clearBit(tmp, RANGE_OF_VALUE_BIT1);
 	}
 
-	public static int setRange1_int(intQuality: number)
+	public static setRange1_int(intQuality: number): number
 	{
 		// Range of value is between first and second limits
 		// Set value = 1 as bit pattern 01
@@ -1355,7 +1351,7 @@ export class Quality {
 	{
 		// Range of value is between second and third limits
 		// Value = 2 as bit pattern 10
-		return isBitClear_int(intQuality, RANGE_OF_VALUE_BIT0)
+		return Quality.isBitClear_int(intQuality, RANGE_OF_VALUE_BIT0)
 				&& isBitSet_int(intQuality, RANGE_OF_VALUE_BIT1);
 	}
 
@@ -1367,7 +1363,7 @@ export class Quality {
 		return setBit(tmp, RANGE_OF_VALUE_BIT1);
 	}
 
-	public static int setRange2_int(intQuality: number)
+	public static setRange2_int(intQuality: number): number
 	{
 		// Range of value is between second and third limits
 		// Set value = 2 as bit pattern 10
@@ -1399,7 +1395,7 @@ export class Quality {
 		return setBit(tmp, RANGE_OF_VALUE_BIT1);
 	}
 
-	public static int setRange3_int(intQuality: number)
+	public static setRange3_int(intQuality: number): number
 	{
 		// Range of value is between second and third limits
 		// Set value = 3 as bit pattern 11
@@ -1433,7 +1429,7 @@ export class Quality {
 		return clearBit(bytes, VALUE_DIFFERS_BIT);
 	}
 
-	public static int clearDifferentValue_int(intQuality: number)
+	public static clearDifferentValue_int(intQuality: number): number
 	{
 		// Value same as original value
 		return clearBit_int(intQuality, VALUE_DIFFERS_BIT);
@@ -1446,7 +1442,7 @@ export class Quality {
 		return setBit(bytes, VALUE_DIFFERS_BIT);
 	}
 
-	private static int setDifferentValue_int(intQuality: number)
+	private static setDifferentValue_int(intQuality: number): number
 	{
 		// Value differs from original value
 		// Once set cannot be cleared, except by clearQuality
@@ -1505,9 +1501,9 @@ export class Quality {
 		return clearBit(tmp, HOW_REVISED_BIT2);
 	}
 
-	public static int clearHowRevised_int(intQuality: number)
+	public static clearHowRevised_int(intQuality: number): number
 	{
-		int tmp = clearBit_int(intQuality, HOW_REVISED_BIT0);
+		let tmp: number = clearBit_int(intQuality, HOW_REVISED_BIT0);
 		tmp = clearBit_int(tmp, HOW_REVISED_BIT1);
 		return clearBit_int(tmp, HOW_REVISED_BIT2);
 	}
@@ -1520,9 +1516,9 @@ export class Quality {
 		return clearBit(tmp, REPLACE_METHOD_BIT3);
 	}
 
-	public static int clearReplaceMethod_int(intQuality: number)
+	public static clearReplaceMethod_int(intQuality: number): number
 	{
-		int tmp = clearBit_int(intQuality, REPLACE_METHOD_BIT0);
+		let tmp: number = clearBit_int(intQuality, REPLACE_METHOD_BIT0);
 		tmp = clearBit_int(tmp, REPLACE_METHOD_BIT1);
 		tmp = clearBit_int(tmp, REPLACE_METHOD_BIT2);
 		return clearBit_int(tmp, REPLACE_METHOD_BIT3);
@@ -1533,7 +1529,7 @@ export class Quality {
 		return clearReplaceMethod(bytes);
 	}
 
-	public static int setReplaceNoRevision_int(intQuality: number)
+	public static setReplaceNoRevision_int(intQuality: number): number
 	{
 		return clearReplaceMethod_int(intQuality);
 	}
@@ -1544,7 +1540,7 @@ export class Quality {
 		return clearReplaceMethod(tmp);
 	}
 
-	public static int setNoRevision_int(intQuality: number)
+	public static setNoRevision_int(intQuality: number): number
 	{
 		int tmp = clearHowRevised_int(intQuality);
 		return clearReplaceMethod_int(tmp);
@@ -1561,7 +1557,7 @@ export class Quality {
 		return clearBit(tmp, HOW_REVISED_BIT2);
 	}
 
-	public static int setRevisedAutomatically_int(intQuality: number)
+	public static setRevisedAutomatically_int(intQuality: number): number
 	{
 		// DATCHK or Automatic Process has performed revision
 		// Set value = 1 as bit pattern 001
@@ -1590,9 +1586,9 @@ export class Quality {
 	{
 		return (isBitSet_int(intQuality, SCREENED_BIT)
 				&& isBitSet_int(intQuality, OKAY_BIT)
-				&& isBitClear_int(intQuality, MISSING_BIT)
-				&& isBitClear_int(intQuality, QUESTION_BIT)
-				&& isBitClear_int(intQuality, REJECT_BIT)
+				&& Quality.isBitClear_int(intQuality, MISSING_BIT)
+				&& Quality.isBitClear_int(intQuality, QUESTION_BIT)
+				&& Quality.isBitClear_int(intQuality, REJECT_BIT)
 				&& isBitSet_int(intQuality, VALUE_DIFFERS_BIT)
 
 				&& isRevisedAutomatically_int(intQuality)
@@ -1614,8 +1610,8 @@ export class Quality {
 		// DATCHK or Automatic Process has performed revision
 		// value = 1 as bit pattern 001
 		return isBitSet_int(intQuality, HOW_REVISED_BIT0)
-				&& isBitClear_int(intQuality, HOW_REVISED_BIT1)
-				&& isBitClear_int(intQuality, HOW_REVISED_BIT2);
+				&& Quality.isBitClear_int(intQuality, HOW_REVISED_BIT1)
+				&& Quality.isBitClear_int(intQuality, HOW_REVISED_BIT2);
 	}
 
 	public static byte[] setRevisedInteractively(bytes: Uint32Array)
@@ -1666,9 +1662,9 @@ export class Quality {
 	{
 		return (isBitSet_int(intQuality, SCREENED_BIT)
 				&& isBitSet_int(intQuality, OKAY_BIT)
-				&& isBitClear_int(intQuality, MISSING_BIT)
-				&& isBitClear_int(intQuality, QUESTION_BIT)
-				&& isBitClear_int(intQuality, REJECT_BIT)
+				&& Quality.isBitClear_int(intQuality, MISSING_BIT)
+				&& Quality.isBitClear_int(intQuality, QUESTION_BIT)
+				&& Quality.isBitClear_int(intQuality, REJECT_BIT)
 				&& isBitSet_int(intQuality, VALUE_DIFFERS_BIT)
 
 				&& isRevisedManually_int(intQuality)
@@ -1681,7 +1677,7 @@ export class Quality {
 		// Value = 3 as bit pattern 011
 		return isBitSet_int(intQuality, HOW_REVISED_BIT0)
 				&& isBitSet_int(intQuality, HOW_REVISED_BIT1)
-				&& isBitClear_int(intQuality, HOW_REVISED_BIT2);
+				&& Quality.isBitClear_int(intQuality, HOW_REVISED_BIT2);
 	}
 
 	public static byte[] setRevisedManually(bytes: Uint32Array)
@@ -1695,11 +1691,11 @@ export class Quality {
 		return clearBit(tmp, HOW_REVISED_BIT2);
 	}
 
-	public static int setRevisedManually_int(intQuality: number)
+	public static setRevisedManually_int(intQuality: number): number
 	{
 		// DATVUE or Interactive Process has performed revision
 		// Set value = 3 as bit pattern 011
-		int tmp = setOkay_int(intQuality);
+		let tmp: number = setOkay_int(intQuality);
 		tmp = setDifferentValue_int(intQuality);
 		tmp = setBit_int(intQuality, HOW_REVISED_BIT0);
 		tmp = setBit_int(tmp, HOW_REVISED_BIT1);
@@ -1886,8 +1882,8 @@ export class Quality {
 	{
 		// DATVUE or Interactive Process has accepted original value
 		// Value = 4 as bit pattern 100
-		return isBitClear_int(intQuality, HOW_REVISED_BIT0)
-				&& isBitClear_int(intQuality, HOW_REVISED_BIT1)
+		return Quality.isBitClear_int(intQuality, HOW_REVISED_BIT0)
+				&& Quality.isBitClear_int(intQuality, HOW_REVISED_BIT1)
 				&& isBitSet_int(intQuality, HOW_REVISED_BIT2);
 	}
 
@@ -1906,9 +1902,9 @@ export class Quality {
 		// Replacement method is linear interpolation
 		// Value = 1 as bit pattern 0001
 		return isBitSet_int(intQuality, REPLACE_METHOD_BIT0)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT1)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
 	}
 
 	public static byte[] setReplaceLinearInterpolation(bytes: Uint32Array)
@@ -1923,7 +1919,7 @@ export class Quality {
 		return clearBit(tmp, REPLACE_METHOD_BIT3);
 	}
 
-	public static int setReplaceLinearInterpolation_int(intQuality: number)
+	public static setReplaceLinearInterpolation_int(intQuality: number): number
 	{
 		// Replacement method is linear interpolation
 		// Set value = 1 as bit pattern 0001
@@ -1949,10 +1945,10 @@ export class Quality {
 	{
 		// Replacement method is manual Change
 		// Value = 2 as bit pattern 0010
-		return isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
+		return Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
 				&& isBitSet_int(intQuality, REPLACE_METHOD_BIT1)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
 	}
 
 	public static byte[] setReplaceManualChange(bytes: Uint32Array)
@@ -1967,7 +1963,7 @@ export class Quality {
 		return clearBit(tmp, REPLACE_METHOD_BIT3);
 	}
 
-	public static int setReplaceManualChange_int(intQuality: number)
+	public static setReplaceManualChange_int(intQuality: number): number
 	{
 		// Replacement method is manual Change
 		// Set value = 2 as bit pattern 0010
@@ -1993,10 +1989,10 @@ export class Quality {
 	{
 		// Replacement method is graphical Change
 		// Value = 4 as bit pattern 0100
-		return isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT1)
+		return Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT1)
 				&& isBitSet_int(intQuality, REPLACE_METHOD_BIT2)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
 	}
 
 	public static byte[] setReplaceGraphicalChange(bytes: Uint32Array)
@@ -2011,11 +2007,11 @@ export class Quality {
 		return clearBit(tmp, REPLACE_METHOD_BIT3);
 	}
 
-	public static int setReplaceGraphicalChange_int(intQuality: number)
+	public static setReplaceGraphicalChange_int(intQuality: number): number
 	{
 		// Replacement method is graphical Change
 		// Set value = 4 as bit pattern 0100
-		int tmp = setOkay_int(intQuality);
+		let tmp: number = setOkay_int(intQuality);
 		tmp = setDifferentValue_int(intQuality);
 		tmp = clearBit_int(intQuality, REPLACE_METHOD_BIT0);
 		tmp = clearBit_int(tmp, REPLACE_METHOD_BIT1);
@@ -2039,8 +2035,8 @@ export class Quality {
 		// Value = 3 as bit pattern 0011
 		return isBitSet_int(intQuality, REPLACE_METHOD_BIT0)
 				&& isBitSet_int(intQuality, REPLACE_METHOD_BIT1)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
-				&& isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
+				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
 	}
 
 	public static byte[] setReplaceWithMissing(bytes: Uint32Array)
@@ -2055,11 +2051,11 @@ export class Quality {
 		return clearBit(tmp, REPLACE_METHOD_BIT3);
 	}
 
-	public static int setReplaceWithMissing_int(intQuality: number)
+	public static setReplaceWithMissing_int(intQuality: number): number
 	{
 		// Replacement method is replace with missing
 		// Set value = 3 as bit pattern 0011
-		int tmp = setMissing_int(intQuality);
+		let tmp: number = setMissing_int(intQuality);
 		tmp = setDifferentValue_int(intQuality);
 		tmp = setBit_int(intQuality, REPLACE_METHOD_BIT0);
 		tmp = setBit_int(tmp, REPLACE_METHOD_BIT1);
@@ -2134,7 +2130,7 @@ export class Quality {
 		return setBit(tmp, SCREENED_BIT);
 	}
 
-	public static int clearOkay_int(intQuality: number)
+	public static clearOkay_int(intQuality: number): number
 	{
 		return setBit_int(clearBit_int(intQuality, OKAY_BIT), SCREENED_BIT);
 	}
@@ -2148,7 +2144,7 @@ export class Quality {
 		return setBit(tmp, SCREENED_BIT);
 	}
 
-	public static int setOkay_int(intQuality: number)
+	public static setOkay_int(intQuality: number): number
 	{
 		int tmp = setBit_int(intQuality, OKAY_BIT);
 		tmp = clearBit_int(tmp, MISSING_BIT);
@@ -2157,11 +2153,11 @@ export class Quality {
 		return setBit_int(tmp, SCREENED_BIT);
 	}
 
-	public static byte[] clearAllBits(bytes: Uint32Array)
+	public static clearAllBits(bytes: Uint32Array): Uint32Array
 	{
-		for(int ii = 0; ii < bytes.length; ii++)
+		for(let i = 0; i < bytes.length; i++)
 		{
-			bytes[ii] = NULL_VALUE;
+			bytes[i] = NULL_VALUE;
 		}
 		return bytes;
 	}
@@ -2210,22 +2206,22 @@ export class Quality {
 		return !isAbsoluteMagnitude_int(intQuality);
 	}
 
-	public static byte[] clearAbsoluteMagnitude(bytes: Uint32Array)
+	public static clearAbsoluteMagnitude(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, ABSOLUTEMAGNITUDE_BIT);
 	}
 
-	public static int clearAbsoluteMagnitude_int(intQuality: number)
+	public static clearAbsoluteMagnitude_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, ABSOLUTEMAGNITUDE_BIT);
 	}
 
-	public static byte[] setAbsoluteMagnitude(bytes: Uint32Array)
+	public static setAbsoluteMagnitude(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, ABSOLUTEMAGNITUDE_BIT);
 	}
 
-	public static int setAbsoluteMagnitude_int(intQuality: number)
+	public static setAbsoluteMagnitude_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, ABSOLUTEMAGNITUDE_BIT);
 	}
@@ -2274,22 +2270,22 @@ export class Quality {
 		return !isConstantValue_int(intQuality);
 	}
 
-	public static byte[] clearConstantValue(bytes: Uint32Array)
+	public static clearConstantValue(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, CONSTANTVALUE_BIT);
 	}
 
-	public static int clearConstantValue_int(intQuality: number)
+	public static clearConstantValue_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, CONSTANTVALUE_BIT);
 	}
 
-	public static byte[] setConstantValue(bytes: Uint32Array)
+	public static setConstantValue(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, CONSTANTVALUE_BIT);
 	}
 
-	public static int setConstantValue_int(intQuality: number)
+	public static setConstantValue_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, CONSTANTVALUE_BIT);
 	}
@@ -2338,22 +2334,22 @@ export class Quality {
 		return !isRateOfChange_int(intQuality);
 	}
 
-	public static byte[] clearRateOfChange(bytes: Uint32Array)
+	public static clearRateOfChange(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, RATEOFCHANGE_BIT);
 	}
 
-	public static int clearRateOfChange_int(intQuality: number)
+	public static clearRateOfChange_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, RATEOFCHANGE_BIT);
 	}
 
-	public static byte[] setRateOfChange(bytes: Uint32Array)
+	public static setRateOfChange(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, RATEOFCHANGE_BIT);
 	}
 
-	public static int setRateOfChange_int(intQuality: number)
+	public static setRateOfChange_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, RATEOFCHANGE_BIT);
 	}
@@ -2402,22 +2398,22 @@ export class Quality {
 		return !isRelativeMagnitude_int(intQuality);
 	}
 
-	public static byte[] clearRelativeMagnitude(bytes: Uint32Array)
+	public static clearRelativeMagnitude(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, RELATIVEMAGNITUDE_BIT);
 	}
 
-	public static int clearRelativeMagnitude_int(intQuality: number)
+	public static clearRelativeMagnitude_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, RELATIVEMAGNITUDE_BIT);
 	}
 
-	public static byte[] setRelativeMagnitude(bytes: Uint32Array)
+	public static setRelativeMagnitude(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, RELATIVEMAGNITUDE_BIT);
 	}
 
-	public static int setRelativeMagnitude_int(intQuality: number)
+	public static setRelativeMagnitude_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, RELATIVEMAGNITUDE_BIT);
 	}
@@ -2466,22 +2462,22 @@ export class Quality {
 		return !isDurationMagnitude_int(intQuality);
 	}
 
-	public static byte[] clearDurationMagnitude(bytes: Uint32Array)
+	public static clearDurationMagnitude(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, DURATIONMAGNITUDE_BIT);
 	}
 
-	public static int clearDurationMagnitude_int(intQuality: number)
+	public static clearDurationMagnitude_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, DURATIONMAGNITUDE_BIT);
 	}
 
-	public static byte[] setDurationMagnitude(bytes: Uint32Array)
+	public static setDurationMagnitude(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, DURATIONMAGNITUDE_BIT);
 	}
 
-	public static int setDurationMagnitude_int(intQuality: number)
+	public static setDurationMagnitude_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, DURATIONMAGNITUDE_BIT);
 	}
@@ -2530,22 +2526,22 @@ export class Quality {
 		return !isNegativeIncremental_int(intQuality);
 	}
 
-	public static byte[] clearNegativeIncremental(bytes: Uint32Array)
+	public static clearNegativeIncremental(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, NEGATIVEINCREMENTAL_BIT);
 	}
 
-	public static int clearNegativeIncremental_int(intQuality: number)
+	public static clearNegativeIncremental_int(intQuality: number): Uint32Array
 	{
 		return clearBit_int(intQuality, NEGATIVEINCREMENTAL_BIT);
 	}
 
-	public static byte[] setNegativeIncremental(bytes: Uint32Array)
+	public static setNegativeIncremental(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, NEGATIVEINCREMENTAL_BIT);
 	}
 
-	public static int setNegativeIncremental_int(intQuality: number)
+	public static setNegativeIncremental_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, NEGATIVEINCREMENTAL_BIT);
 	}
@@ -2594,22 +2590,22 @@ export class Quality {
 		return !isUserDefinedTest_int(intQuality);
 	}
 
-	public static byte[] clearUserDefinedTest(bytes: Uint32Array)
+	public static clearUserDefinedTest(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, USER_DEFINED_TEST_BIT);
 	}
 
-	public static int clearUserDefinedTest_int(intQuality: number)
+	public static clearUserDefinedTest_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, USER_DEFINED_TEST_BIT);
 	}
 
-	public static byte[] setUserDefinedTest(bytes: Uint32Array)
+	public static setUserDefinedTest(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, USER_DEFINED_TEST_BIT);
 	}
 
-	public static int setUserDefinedTest_int(intQuality: number)
+	public static setUserDefinedTest_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, USER_DEFINED_TEST_BIT);
 	}
@@ -2658,22 +2654,22 @@ export class Quality {
 		return !isDistributionTest_int(intQuality);
 	}
 
-	public static byte[] clearDistributionTest(bytes: Uint32Array)
+	public static clearDistributionTest(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, DISTRIBUTIONTEST_BIT);
 	}
 
-	public static int clearDistributionTest_int(intQuality: number)
+	public static clearDistributionTest_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, DISTRIBUTIONTEST_BIT);
 	}
 
-	public static byte[] setDistributionTest(bytes: Uint32Array)
+	public static setDistributionTest(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, DISTRIBUTIONTEST_BIT);
 	}
 
-	public static int setDistributionTest_int(intQuality: number)
+	public static setDistributionTest_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, DISTRIBUTIONTEST_BIT);
 	}
@@ -2722,27 +2718,27 @@ export class Quality {
 		return !isGageList_int(intQuality);
 	}
 
-	public static byte[] clearGageList(bytes: Uint32Array)
+	public static clearGageList(bytes: Uint32Array): Uint32Array
 	{
 		return clearBit(bytes, GAGELIST_BIT);
 	}
 
-	public static int clearGageList_int(intQuality: number)
+	public static clearGageList_int(intQuality: number): number
 	{
 		return clearBit_int(intQuality, GAGELIST_BIT);
 	}
 
-	public static byte[] setGageList(bytes: Uint32Array)
+	public static setGageList(bytes: Uint32Array): Uint32Array
 	{
 		return setBit(bytes, GAGELIST_BIT);
 	}
 
-	public static int setGageList_int(intQuality: number)
+	public static setGageList_int(intQuality: number): number
 	{
 		return setBit_int(intQuality, GAGELIST_BIT);
 	}
 
-	static String[] PADDING = {"", "0", "00", "000", "0000", "00000",
+	static PADDING: string[] = ["", "0", "00", "000", "0000", "00000",
 			"000000", "0000000", "00000000", "000000000", "0000000000",
 			"00000000000", "000000000000", "0000000000000", "00000000000000",
 			"000000000000000", "0000000000000000", "00000000000000000",
@@ -2752,18 +2748,18 @@ export class Quality {
 			"0000000000000000000000000", "00000000000000000000000000",
 			"000000000000000000000000000", "0000000000000000000000000000",
 			"00000000000000000000000000000", "000000000000000000000000000000",
-			"0000000000000000000000000000000", "00000000000000000000000000000000"};
+			"0000000000000000000000000000000", "00000000000000000000000000000000"]
 
-	public int[] getIntQuality()
+	public getIntQuality(): number
 	{
-		int[] iqual = new int[this._size];
-		for(int ii = 0; ii < this._size; ii++)
+		let iqual: number[] = new int[this._size];
+		for(let i = 0; i < this._size; i++)
 		{
-			int byteIndex = ii * Quality.ELEMENT_SIZE_IN_BYTES;
-			int i0 = ((int) _elementData[byteIndex + 0]) & MASK_BYTE;
-			int i1 = ((int) _elementData[byteIndex + 1]) & MASK_BYTE;
-			int i2 = ((int) _elementData[byteIndex + 2]) & MASK_BYTE;
-			int i3 = ((int) _elementData[byteIndex + 3]) & MASK_BYTE;
+			const byteIndex: number = i * Quality.ELEMENT_SIZE_IN_BYTES;
+			const i0: number = this._elementData[byteIndex + 0] & Quality.MASK_BYTE;
+			const i1: number = this._elementData[byteIndex + 1] & Quality.MASK_BYTE;
+			const i2: number = this._elementData[byteIndex + 2] & Quality.MASK_BYTE;
+			const i3: number = this._elementData[byteIndex + 3] & Quality.MASK_BYTE;
 			iqual[ii] = i3 | (i2 << 8) | (i1 << 16) | (i0 << 24);
 		}
 		return iqual;
@@ -2771,7 +2767,7 @@ export class Quality {
 
 	public static isEmpty(bytes: Uint32Array): boolean
 	{
-		int iqual = getInteger(bytes);
+		const iqual: number = getInteger(bytes);
 		return (iqual == 0);
 	}
 
@@ -2930,64 +2926,66 @@ export class Quality {
         return retval;
     }
 
-	private <V> NavigableMap<Date, V> getDateQualityMap(IntFunction<V> qualityExtractor, long[] timesArray)
+	private getDateQualityMap(qualityExtractor: (index: number) => V, timesArray: number[]): Map<Date, V>
 	{
-		NavigableMap<Date, V> retval = new TreeMap<>();
-		for(int i = 0; i < timesArray.length; i++)
+        const retval: TreeMap<Date, V> = new TreeMap<Date, V>()
+		for(let i = 0; i < timesArray.length; i++)
 		{
-			Date date = new Date(timesArray[i]);
-			retval.put(date, qualityExtractor.apply(i));
+			const date: Date = new Date(timesArray[i]);
+			retval.set(date, qualityExtractor(i));
 		}
 		return retval;
 	}
 
-	private String toStringElement(elementIndex: number, int stringType)
+	private toStringElement(elementIndex: number, stringType: number): string
 	{
-		return getString(getIntegerAt(elementIndex), stringType);
+		return this.getString(this.getIntegerAt(elementIndex), stringType);
 	}
 
-	public String toBinaryString()
+	public toBinaryString(): string
 	{
-		return toString(BINARY_STRING);
+		return this.toString(BINARY_STRING);
 	}
 
-	public String toOctalString()
+	public toOctalString(): string
 	{
-		return toString(OCTAL_STRING);
+		return this.toString(OCTAL_STRING);
 	}
 
-	public String toSymbolicString()
+	public toSymbolicString(): string
 	{
-		return toString(SYMBOLIC_STRING);
+		return this.toString(SYMBOLIC_STRING);
 	}
 
-	public String toSymbolicRevisedString()
+	public toSymbolicRevisedString(): string
 	{
-		return toString(SYMBOLIC_REVISED_STRING);
+		return this.toString(SYMBOLIC_REVISED_STRING);
 	}
 
-	public String toSymbolicTestsString()
+	public toSymbolicTestsString(): string
 	{
-		return toString(SYMBOLIC_TESTS_STRING);
+		return this.toString(SYMBOLIC_TESTS_STRING);
 	}
 
-	public String toHexString()
+	public toHexString(): string
 	{
-		return toString(HEX_STRING);
+		return string.toString(HEX_STRING);
 	}
 
-	public String toIntegerString()
+	public toIntegerString(): string
 	{
-		return toString(INTEGER_STRING);
+		return this.toString(INTEGER_STRING);
 	}
 
-	public String toIntegerStringElementAt(elementIndex: number)
+	public toIntegerStringElementAt(elementIndex: number): string
 	{
-		return Integer.toString(getIntegerAt(elementIndex));
+		return this.getIntegerAt(elementIndex).toString()
 	}
 
-	public String toBinaryStringElementAt(elementIndex: number)
+    
+	public toBinaryStringElementAt(elementIndex: number): string
 	{
+        
 		return pad(Integer.toBinaryString(getIntegerAt(elementIndex)),
 				BINARY_STRING);
 	}
@@ -3018,27 +3016,21 @@ export class Quality {
 		return pad(Integer.toHexString(getIntegerAt(elementIndex)), HEX_STRING);
 	}
 
-	@Override
-	public String toString()
-	{
-		return toString(HEX_STRING);
-	}
-
-	private String toString(int stringType)
-	{
-		StringBuilder buf = new StringBuilder();
-		buf.append("[");
-
-		for(int i = 0; i < _size; i++)
+	private toString(stringType: number | undefined): string
+	{   
+        if (typeof stringType === 'undefined')  {
+            return this.toString(this.HEX_STRING);
+        }
+        let result = "[";
+		for(let i = 0; i < this._size; i++)
 		{
-			String s = toStringElement(i, stringType);
-			buf.append(s);
+			result += this.toStringElement(i, stringType);
 			if(i < (_size - 1))
 			{
-				buf.append(", ");
+				result += ", "
 			}
 		}
-		buf.append("]");
-		return buf.toString();
+		result += "]"
+		return result
 	}
 }
