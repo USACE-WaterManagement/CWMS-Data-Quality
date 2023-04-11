@@ -59,6 +59,10 @@ export class QualityStringRenderer {
     // Be sure to use the getters for accessing these, since they may be null.
     private static previousColorMap: Map<string, string> = new Map<string, string>();
 
+    public static getSymbolicString(intQuality: number): string {
+        return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_STRING);
+    }
+
     public static getString(intQuality: number, stringType: number): string {
         let n = intQuality;
         let bytes: Uint32Array = new Uint32Array(4);
