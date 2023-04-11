@@ -1627,7 +1627,7 @@ export class Quality {
 				&& Quality.isBitClear_int(intQuality, Quality.HOW_REVISED_BIT2);
 	}
 
-	public staticsetRevisedInteractively(bytes: Int32Array): Int32Array
+	public static setRevisedInteractively(bytes: Int32Array): Int32Array
 	{
 		// DATVUE or Interactive Process has performed revision
 		// Set value = 2 as bit pattern 010
@@ -1924,7 +1924,7 @@ export class Quality {
 				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT3);
 	}
 
-	public static bsetReplaceLinearInterpolation(bytes: Int32Array): Int32Array
+	public static setReplaceLinearInterpolation(bytes: Int32Array): Int32Array
 	{
 		// Replacement method is linear interpolation
 		// Set value = 1 as bit pattern 0001
@@ -1940,32 +1940,32 @@ export class Quality {
 	{
 		// Replacement method is linear interpolation
 		// Set value = 1 as bit pattern 0001
-		int tmp = setOkay_int(intQuality);
-		tmp = setDifferentValue_int(intQuality);
-		tmp = setBit_int(intQuality, REPLACE_METHOD_BIT0);
-		tmp = clearBit_int(tmp, REPLACE_METHOD_BIT1);
-		tmp = clearBit_int(tmp, REPLACE_METHOD_BIT2);
-		return clearBit_int(tmp, REPLACE_METHOD_BIT3);
+		let tmp: number = Quality.setOkay_int(intQuality);
+		tmp = Quality.setDifferentValue_int(intQuality);
+		tmp = Quality.setBit_int(intQuality, Quality.REPLACE_METHOD_BIT0);
+		tmp = Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT1);
+		tmp = Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT2);
+		return Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT3);
 	}
 
 	public static isReplaceManualChange(bytes: Int32Array): boolean
 	{
 		// Replacement method is manual Change
 		// Value = 2 as bit pattern 0010
-		return isBitClear(bytes, REPLACE_METHOD_BIT0)
-				&& isBitSet(bytes, REPLACE_METHOD_BIT1)
-				&& isBitClear(bytes, REPLACE_METHOD_BIT2)
-				&& isBitClear(bytes, REPLACE_METHOD_BIT3);
+		return Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT2)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT3);
 	}
 
 	public static isReplaceManualChange_int(intQuality: number): boolean
 	{
 		// Replacement method is manual Change
 		// Value = 2 as bit pattern 0010
-		return Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT0)
-				&& isBitSet_int(intQuality, REPLACE_METHOD_BIT1)
-				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT2)
-				&& Quality.isBitClear_int(intQuality, REPLACE_METHOD_BIT3);
+		return Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT2)
+				&& Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT3);
 	}
 
 	public static setReplaceManualChange(bytes: Int32Array): Int32Array
@@ -1984,22 +1984,22 @@ export class Quality {
 	{
 		// Replacement method is manual Change
 		// Set value = 2 as bit pattern 0010
-		int tmp = setOkay_int(intQuality);
-		tmp = setDifferentValue_int(intQuality);
-		tmp = clearBit_int(intQuality, REPLACE_METHOD_BIT0);
-		tmp = setBit_int(tmp, REPLACE_METHOD_BIT1);
-		tmp = clearBit_int(tmp, REPLACE_METHOD_BIT2);
-		return clearBit_int(tmp, REPLACE_METHOD_BIT3);
+		let tmp: number = Quality.setOkay_int(intQuality);
+		tmp = Quality.setDifferentValue_int(intQuality);
+		tmp = Quality.clearBit_int(intQuality, Quality.REPLACE_METHOD_BIT0);
+		tmp = Quality.setBit_int(tmp, Quality.REPLACE_METHOD_BIT1);
+		tmp = Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT2);
+		return Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT3);
 	}
 
 	public static isReplaceGraphicalChange(bytes: Int32Array): boolean
 	{
 		// Replacement method is graphical Change
 		// Value = 4 as bit pattern 0100
-		return isBitClear(bytes, REPLACE_METHOD_BIT0)
-				&& isBitClear(bytes, REPLACE_METHOD_BIT1)
-				&& isBitSet(bytes, REPLACE_METHOD_BIT2)
-				&& isBitClear(bytes, REPLACE_METHOD_BIT3);
+		return Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT0)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT1)
+				&& Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT2)
+				&& Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT3);
 	}
 
 	public static isReplaceGraphicalChange_int(intQuality: number): boolean
@@ -2839,8 +2839,8 @@ export class Quality {
 	 */
 	public static canShowQuality(Preferences appSpecificRootNode): boolean
 	{
-		Preferences qualNode = getQualityPrefs(appSpecificRootNode);
-		return qualNode.getBoolean(SHOW_QUALITY_FLAGS, true);
+		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
+		return qualNode.getBoolean(Quality.SHOW_QUALITY_FLAGS, true);
 	}
 
 	/**
@@ -2851,8 +2851,8 @@ export class Quality {
 	 */
 	public static setShowQuality(Preferences appSpecificRootNode, boolean showQuality): void
 	{
-		Preferences qualNode = getQualityPrefs(appSpecificRootNode);
-		qualNode.putBoolean(SHOW_QUALITY_FLAGS, showQuality);
+		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
+		qualNode.putBoolean(Quality.SHOW_QUALITY_FLAGS, showQuality);
 	}
 
 	/**
@@ -2863,8 +2863,8 @@ export class Quality {
 	 */
 	public static setCanEditQuality(Preferences appSpecificRootNode, boolean editQuality): void
 	{
-		Preferences qualNode = getQualityPrefs(appSpecificRootNode);
-		qualNode.putBoolean(QUALITY_FLAGS_EDITABLE, editQuality);
+		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
+		qualNode.putBoolean(Quality.QUALITY_FLAGS_EDITABLE, editQuality);
 	}
 
 	/**
@@ -2876,7 +2876,7 @@ export class Quality {
 	 */
 	public static addQualityPreferencesListener(Preferences appSpecificRootNode, PreferenceChangeListener listener): void
 	{
-		Preferences qualNode = getQualityPrefs(appSpecificRootNode);
+		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
 
 		//Make sure we enforce a single preference change listener in the node.
 		qualNode.removePreferenceChangeListener(listener);
@@ -2892,7 +2892,7 @@ export class Quality {
 	 */
 	public static removeQualityPreferencesListener(Preferences appSpecificRootNode, PreferenceChangeListener listener): void
 	{
-		Preferences qualNode = getQualityPrefs(appSpecificRootNode);
+		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
 		qualNode.removePreferenceChangeListener(listener);
 	}
 
@@ -2956,7 +2956,7 @@ export class Quality {
 
 	private toStringElement(elementIndex: number, stringType: number): string
 	{
-		return getString(this.getIntegerAt(elementIndex), stringType);
+		return QualityStringRenderer.getString(this.getIntegerAt(elementIndex), stringType);
 	}
 
 	public toBinaryString(): string
@@ -2986,12 +2986,12 @@ export class Quality {
 
 	public toHexString(): string
 	{
-		return string.toString(HEX_STRING);
+		return HEX_STRING.toString();
 	}
 
 	public toIntegerString(): string
 	{
-		return this.toString(INTEGER_STRING);
+		return INTEGER_STRING.toString();
 	}
 
 	public toIntegerStringElementAt(elementIndex: number): string
@@ -3002,47 +3002,50 @@ export class Quality {
     
 	public toBinaryStringElementAt(elementIndex: number): string
 	{
-        
-		return pad(Integer.toBinaryString(getIntegerAt(elementIndex)),
-				BINARY_STRING);
+		return QualityStringRenderer.pad(
+                this.getIntegerAt(elementIndex).toString(2),
+				QualityStringRenderer.BINARY_STRING);
 	}
 
-	public String toOctalStringElementAt(elementIndex: number)
+	public toOctalStringElementAt(elementIndex: number): string
 	{
-		return pad(Integer.toOctalString(getIntegerAt(elementIndex)),
-				OCTAL_STRING);
+		return QualityStringRenderer.pad(
+                this.getIntegerAt(elementIndex).toString(8),
+				QualityStringRenderer.OCTAL_STRING);
 	}
 
-	public String toSymbolicStringElementAt(elementIndex: number)
+	public toSymbolicStringElementAt(elementIndex: number): string
 	{
-		return toStringElement(elementIndex, SYMBOLIC_STRING);
+		return this.toStringElement(elementIndex, QualityStringRenderer.SYMBOLIC_STRING);
 	}
 
-	public String toSymbolicTestsStringElementAt(elementIndex: number)
+	public toSymbolicTestsStringElementAt(elementIndex: number): string
 	{
-		return toStringElement(elementIndex, SYMBOLIC_TESTS_STRING);
+		return this.toStringElement(elementIndex, QualityStringRenderer.SYMBOLIC_TESTS_STRING);
 	}
 
-	public String toSymbolicRevisedStringElementAt(elementIndex: number)
+	public toSymbolicRevisedStringElementAt(elementIndex: number): string
 	{
-		return toStringElement(elementIndex, SYMBOLIC_REVISED_STRING);
+		return this.toStringElement(elementIndex, QualityStringRenderer.SYMBOLIC_REVISED_STRING);
 	}
 
-	public String toHexStringElementAt(elementIndex: number)
+	public toHexStringElementAt(elementIndex: number): string
 	{
-		return pad(Integer.toHexString(getIntegerAt(elementIndex)), HEX_STRING);
+		return QualityStringRenderer.pad(
+            this.getIntegerAt(elementIndex).toString(16),
+            QualityStringRenderer.HEX_STRING);
 	}
 
 	private toString(stringType: number | undefined): string
 	{   
         if (typeof stringType === 'undefined')  {
-            return this.toString(this.HEX_STRING);
+            return this.toString(QualityStringRenderer.HEX_STRING);
         }
         let result = "[";
 		for(let i = 0; i < this._size; i++)
 		{
 			result += this.toStringElement(i, stringType);
-			if(i < (_size - 1))
+			if(i < (this._size - 1))
 			{
 				result += ", "
 			}
