@@ -65,7 +65,7 @@ export class QualityStringRenderer {
 
     public static getString(intQuality: number, stringType: number): string {
         let n = intQuality;
-        let bytes: Uint32Array = new Uint32Array(4);
+        let bytes: Int32Array = new Int32Array(4);
         bytes[3] = (n & Quality.MASK_BYTE);
         bytes[2] = (n >> 8 & Quality.MASK_BYTE);
         bytes[1] = (n >> 16 & Quality.MASK_BYTE);
