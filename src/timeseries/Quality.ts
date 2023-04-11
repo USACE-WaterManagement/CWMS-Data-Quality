@@ -1,7 +1,7 @@
 import pako from 'pako';
 import TreeMap from 'ts-treemap'
 import { ZonedDateTime, Instant, ZoneId } from 'js-joda';
-
+import { QualityStringRenderer } from './QualityStringRenderer';
 
 
 const BINARY_STRING = 0;
@@ -11,6 +11,7 @@ const INTEGER_STRING = 3;
 const SYMBOLIC_STRING = 4;
 const SYMBOLIC_REVISED_STRING = 5;
 const SYMBOLIC_TESTS_STRING = 6;
+
 export class Quality {
   static readonly serialVersionUID = 5287976742565108510n;
   public static QUALITY_FLAGS_EDITABLE = "quality_flags_editable";
@@ -2939,7 +2940,7 @@ export class Quality {
 
 	private toStringElement(elementIndex: number, stringType: number): string
 	{
-		return this.getString(this.getIntegerAt(elementIndex), stringType);
+		return getString(this.getIntegerAt(elementIndex), stringType);
 	}
 
 	public toBinaryString(): string
