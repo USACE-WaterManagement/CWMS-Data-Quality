@@ -230,6 +230,12 @@ export class Quality {
     tmp._isCompressed = true;
   }
 
+  /**
+   * Uncompresses the data in a Quality object.
+   * @param tmp The Quality object to uncompress.
+   * @throws {Error} If tmp is null or undefined.
+   * @throws {DataFormatException} If the compressed data in tmp is malformed.
+   */
   public static uncompressQuality(tmp: Quality): void {
     // If the data is already uncompressed, there's nothing to do.
     if (!tmp._isCompressed) {
@@ -249,10 +255,19 @@ export class Quality {
     }
   }
 
+  /**
+    Returns the empty quality value.
+    @returns {number} - The empty quality value.
+    */
   public static emptyQualityValue(): number {
     return Quality.NULL_VALUE;
   }
 
+  /**
+   * Returns an Int32Array with empty bytes.
+   *
+   * @returns {Int32Array} - An Int32Array with empty bytes.
+   */
   public static emptyBytes(): Int32Array {
     return new Int32Array([
       Quality.NULL_VALUE,
@@ -262,22 +277,51 @@ export class Quality {
     ]);
   }
 
+  /**
+   * Returns the Int32Array containing the quality data.
+   *
+   * @returns {Int32Array} - The Int32Array containing the quality data.
+   */
   public getQuality(): Int32Array {
     return this._elementData;
   }
 
+  /**
+   * Returns the size of the element data.
+   *
+   * @returns {number} - The size of the element data.
+   */
   public getSize(): number {
     return this._size;
   }
 
+  /**
+   * Returns the size of the element data in bytes.
+   *
+   * @returns {number} - The size of the element data in bytes.
+   */
   public getSizeInBytes(): number {
     return this._sizeInBytes;
   }
 
+  /**
+   * Checks if the element data has quality.
+   *
+   * @returns {boolean} - True if the element data has quality, false otherwise.
+   */
   public hasQuality(): boolean {
     return this._size > 0;
   }
 
+  /**
+   * Gets the Bitmap of the element at the specified index.
+   *
+   * @param {number} elementIndex - The index of the element.
+   *
+   * @returns {Bitmap} - The Bitmap of the element at the specified index.
+   *
+   * @throws {RangeError} - If the specified index is out of range.
+   */
   getElementAt(elementIndex: number): Int32Array {
     if (elementIndex > this._size || elementIndex < 0) {
       throw new RangeError(
@@ -298,6 +342,13 @@ export class Quality {
     return bytes;
   }
 
+  /**
+   * Gets the integer value of the bitmap at the specified index.
+   *
+   * @param {number} elementIndex - The index of the element.
+   *
+   * @returns {number} - The integer value of the element at the specified index.
+   */
   getIntegerAt(elementIndex: number): number {
     const bytes: Int32Array = this.getElementAt(elementIndex);
     const i0: number = bytes[0] & Quality.MASK_BYTE;
@@ -308,6 +359,13 @@ export class Quality {
     return result;
   }
 
+  /**
+   * Gets the integer value from the specified bitmap.
+   *
+   * @param {Int32Array} bytes - The bitmap to get the integer value from.
+   *
+   * @returns {number} - The integer value obtained from the bitmap.
+   */
   static getInteger(bytes: Int32Array): number {
     const i0: number = bytes[0] & Quality.MASK_BYTE;
     const i1: number = bytes[1] & Quality.MASK_BYTE;
@@ -317,6 +375,14 @@ export class Quality {
     return result;
   }
 
+  /**
+   * Sets the integer value of the element at the specified index.
+   *
+   * @param {number} intQuality - The integer value to set.
+   * @param {number} elementIndex - The index of the element to set.
+   *
+   * @returns {void}
+   */
   setIntegerAt(intQuality: number, elementIndex: number): void {
     const bytes: Int32Array = new Int32Array(4);
     bytes[3] = intQuality & Quality.MASK_BYTE;
@@ -355,6 +421,16 @@ export class Quality {
     return;
   }
 
+  /**
+   * Sets the element at the specified index to the given bytes.
+   *
+   * @param {bitmap} bytes - The bytes to set.
+   * @param {number} elementIndex - The index of the element to set.
+   *
+   * @returns {void}
+   *
+   * @throws {Error} If the element index is out of range [0 - size].
+   */
   public setElementAt(bytes: Int32Array, elementIndex: number): void {
     if (elementIndex > this._size || elementIndex < 0) {
       throw new Error(
@@ -384,6 +460,22 @@ export class Quality {
     }
   }
 
+  /**
+   * Returns true if the given 32-bit integer array represents an accepted quality value.
+   *
+   * A quality value is accepted if:
+   * - The screened bit is set.
+   * - The okay bit is set.
+   * - The missing bit is clear.
+   * - The question bit is clear.
+   * - The reject bit is clear.
+   * - The how-revised bit 0 and bit 1 are clear.
+   * - The how-revised bit 2 is set.
+   * - The replace-method bits 0, 1, 2, and 3 are clear.
+   *
+   * @param bytes - The 32-bit integer array to check.
+   * @returns True if the quality value is accepted, false otherwise.
+   */
   public static isAccepted(bytes: Int32Array): boolean {
     // No Revision Replacement Method set 0 = 0000
     // "A" for Original Value is Accepted
@@ -403,9 +495,15 @@ export class Quality {
     );
   }
 
+  /**
+   * Determines if the given quality integer value represents an accepted data point.
+   *  Linear Interpolation Replacement Method set 1 = 0001
+   *   "I" for Interpolated Value
+   *
+   * @param intQuality - The quality integer value to check.
+   * @returns Whether the quality integer value represents an accepted data point or not.
+   */
   public static isAccepted_int(intQuality: number): boolean {
-    // No Revision Replacement Method set 0 = 0000
-    // "A" for Original Value is Accepted
     return (
       Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT) &&
       Quality.isBitSet_int(intQuality, Quality.OKAY_BIT) &&
@@ -422,9 +520,16 @@ export class Quality {
     );
   }
 
+  /**
+   *  Determines if a given integer represents an interpolated value based on its quality bits.
+   *
+   *  Linear Interpolation Replacement Method set 1 = 0001.
+   *  "I" for Interpolated Value.
+   *
+   *  @param intQuality - The integer value representing the quality of a data element.
+   *  @returns A boolean value indicating whether the quality represents an interpolated value.
+   */
   public static isInterpolated(bytes: Int32Array): boolean {
-    // Linear Interpolation Replacement Method set 1 = 0001
-    // "I" for Interpolated Value
     return (
       Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT0) &&
       Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT1) &&
@@ -433,9 +538,12 @@ export class Quality {
     );
   }
 
+  /**
+   * Determines if the given integer value represents an interpolated quality.
+   * @param intQuality - The integer value to check.
+   * @returns A boolean value indicating whether the given integer value represents an interpolated quality.
+   */
   public static isInterpolated_int(intQuality: number): boolean {
-    // Linear Interpolation Replacement Method set 1 = 0001
-    // "I" for Interpolated Value
     return (
       Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT0) &&
       Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT1) &&
@@ -444,6 +552,12 @@ export class Quality {
     );
   }
 
+  /**
+   * Determines if the given Int32Array represents keyboard input based on the replace method bits.
+   * Replace method bit 0 should be cleared, bit 1 should be set, and bits 2 and 3 should be cleared.
+   * @param bytes - The Int32Array to check.
+   * @returns A boolean value indicating whether the given Int32Array represents keyboard input.
+   */
   public static isKeyboardInput(bytes: Int32Array): boolean {
     // Manual Change Replacement Method set 2 = 0010
     // "K" for Keyboard Input
@@ -455,9 +569,17 @@ export class Quality {
     );
   }
 
+  /**
+   * Determines if the given integer value represents keyboard input based on the replace method bits.
+   * Replace method bit 0 should be cleared, bit 1 should be set, and bits 2 and 3 should be cleared.
+   *
+   *
+   * Manual Change Replacement Method set 2 = 0010
+   * "K" for Keyboard Input
+   *
+   * @param intQuality - The integer value to check.
+   */
   public static isKeyboardInput_int(intQuality: number): boolean {
-    // Manual Change Replacement Method set 2 = 0010
-    // "K" for Keyboard Input
     return (
       Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT0) &&
       Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT1) &&
@@ -466,9 +588,18 @@ export class Quality {
     );
   }
 
+  /**
+   * Determines if the given Int32Array represents a graphical estimate based on the replace method bits.
+   *
+   * Manual Change Replacement Method set 4 = 0100
+   * "E" for Graphical Estimate
+   * 
+   * Replace method bit 0 and bit 1 should be cleared, bit 2 should be set, and bit 3 should be cleared.
+   *
+   * @param bytes - The Int32Array to check.
+   * @returns A boolean value indicating whether the given Int32Array represents a graphical estimate.
+   */
   public static isGraphicalEstimate(bytes: Int32Array): boolean {
-    // Manual Change Replacement Method set 4 = 0100
-    // "E" for Graphical Estimate
     return (
       Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT0) &&
       Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT1) &&
