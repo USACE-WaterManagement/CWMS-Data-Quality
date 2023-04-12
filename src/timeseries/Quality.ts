@@ -2,6 +2,10 @@ import * as pako from 'pako';
 import TreeMap from 'ts-treemap'
 import { QualityStringRenderer } from './QualityStringRenderer';
 
+interface ZonedDateTime {
+  date: Date;
+  timeZone: string;
+}
 export class Quality {
   static readonly serialVersionUID = 5287976742565108510n;
   public static QUALITY_FLAGS_EDITABLE = "quality_flags_editable";
@@ -2782,41 +2786,41 @@ export class Quality {
 	}
 
 	/**
-	 * Method for transforming underlying QualityTx into an accessible Collections object. This method will perform the entire calculation for
-	 * the times array from the getTimes() method and uses the QualityTx methods to transform the Integer quality into integers.
-	 *
-	 * @return sorted map that is not thread safe of dates to quality. Values will not be null, but the collection will be empty if QualityTx is null.
-	 */
-	public NavigableMap<Date, Integer> getQualityIntegers(long[] timesArray)
-	{
-		return getDateQualityMap(this::getIntegerAt, timesArray);
-	}
-
-	/**
-	 * Method for transforming underlying QualityTx into an accessible Collections object. This method will perform the entire calculation for
-	 * the times array from the getTimes() method and uses the QualityTx methods to transform the Integer quality into integers.
-	 *
-	 * @return sorted map that is not thread safe of dates to quality. Values will not be null, but the collection will be empty if QualityTx is null.
-	 */
-	public NavigableMap<ZonedDateTime, Integer> getQualityIntegers(long[] timesArray, ZoneId zonedId)
-	{
-		return getZonedDateTimeQualityMap(this::getIntegerAt, timesArray, zonedId);
-	}
+     * Gets a sorted map of dates to quality values for the given times array, using the provided function to extract the quality values.
+     * If a `zoneId` is provided, the map will use `ZonedDateTime` objects instead of `Date` objects.
+     *
+     * @param timesArray An array of timestamps in milliseconds since the Unix epoch.
+     * @param zoneId Optional. A string representing the time zone to use for `ZonedDateTime` objects. If not provided, `Date` objects will be used instead.
+     *
+     * @returns A sorted map of dates or `ZonedDateTime` objects to quality values.
+     */
+    getQualityIntegers(timesArray: number[], zoneId?: string): Map<Date | ZonedDateTime, number> {
+        if (zoneId) {
+            const zonedDateTimeMap = this.getZonedDateTimeQualityMap(this.getIntegerAt.bind(this), timesArray, zoneId);
+            const dateMap = new Map<Date, number>();
+            for (const [date, value] of zonedDateTimeMap.entries()) {
+                dateMap.set(date, value);
+            }
+            return dateMap;
+        } else {
+            return this.getDateQualityMap(this.getIntegerAt.bind(this), timesArray);
+        }
+    }
 
     private getZonedDateTimeQualityMap<V>(
-        qualityExtractor: IntFunction<V>,
+        qualityExtractor: (i: number) => V,
         timesArray: number[],
         zoneId: string
-        ): Map<Date, V> {
+    ): Map<Date, V> {
         const retval = new Map<Date, V>();
         for (let i = 0; i < timesArray.length; i++) {
             const date = new Date(timesArray[i]);
             const zonedDateTime = new Date(date.toLocaleString("en-US", { timeZone: zoneId }));
-            retval.set(zonedDateTime, qualityExtractor.apply(i));
+            retval.set(zonedDateTime, qualityExtractor(i));
         }
         return retval;
     }
-
+    
 	private getDateQualityMap(qualityExtractor: (index: number) => V, timesArray: number[]): Map<Date, V>
 	{
         const retval: TreeMap<Date, V> = new TreeMap<Date, V>()
