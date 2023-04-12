@@ -1,16 +1,6 @@
-import pako from 'pako';
+import * as pako from 'pako';
 import TreeMap from 'ts-treemap'
-import { ZonedDateTime, Instant, ZoneId } from 'js-joda';
 import { QualityStringRenderer } from './QualityStringRenderer';
-
-
-const BINARY_STRING = 0;
-const OCTAL_STRING = 1;
-const HEX_STRING = 2;
-const INTEGER_STRING = 3;
-const SYMBOLIC_STRING = 4;
-const SYMBOLIC_REVISED_STRING = 5;
-const SYMBOLIC_TESTS_STRING = 6;
 
 export class Quality {
   static readonly serialVersionUID = 5287976742565108510n;
@@ -258,16 +248,8 @@ export class Quality {
         if (tmp._isCompressed || tmp._size < 10) {
             return;
         }
-
-        const tmpComp = new Int32Array(tmp._elementData.length);
-        const deflater = new pako.Deflate();
-        deflater.push(tmp._elementData, true);
-        const num = deflater.result.length;
-        const numIn = deflater.strstart;
-
-        tmp._elementDataCompressed = new Int32Array(num);
-        tmp._elementDataCompressed.set(deflater.result);
-        tmp._elementData = null;
+        const output = new Int32Array(pako.deflate(tmp._elementData.buffer));
+        tmp._elementDataCompressed = output
         tmp._isCompressed = true;
     }
 
@@ -275,7 +257,7 @@ export class Quality {
     {
         if (tmp._isCompressed) {
             tmp._elementData = new Int32Array(tmp._size * 4);
-            const numSoFar = pako.inflate(tmp._elementDataCompressed, tmp._elementData);
+            const numSoFar = pako.inflate(new Int32Array(tmp._elementDataCompressed.buffer), tmp._elementData);
             const num = numSoFar;
             tmp._elementDataCompressed = null;
             tmp._isCompressed = false;
@@ -2789,114 +2771,6 @@ export class Quality {
 	}
 
 	/**
-	 * Provides a uniform way of creating the Quality settings preferences
-	 *
-	 * @param rootNode
-	 * @return
-	 */
-	private static Preferences getQualityPrefs(Preferences rootNode)
-	{
-		return rootNode.node(Quality.class.getSimpleName());
-	}
-
-	/**
-	 * Provides a uniform way of creating the quality color preferences node.
-	 * <p>
-	 * Please keep this for use later, it will be used once we start updating
-	 * the preferences for quality colors.
-	 *
-	 * @param rootNode
-	 * @return
-	 */
-	private static Preferences getQualityColorPrefs(Preferences rootNode)
-	{
-		return rootNode.node(Quality.class.getSimpleName()).node("color");
-	}
-
-	/**
-	 * Gets the application specific edit quality flag and returns that.  Make
-	 * sure you're not using the Preferences.userRoot or Preferences.systemRoot
-	 * because these are NOT application specific, this will be user or system
-	 * specific preferences.
-	 *
-	 * @param appSpecificRootNode
-	 * @return
-	 */
-	public static canEditQuality(Preferences appSpecificRootNode): boolean
-	{
-		Preferences qualNode = getQualityPrefs(appSpecificRootNode);
-		return qualNode.getBoolean(QUALITY_FLAGS_EDITABLE, true);
-	}
-
-	/**
-	 * Gets the application specific show quality flag and returns that.  Make
-	 * sure you're not using the Preferences.userRoot or Preferences.systemRoot
-	 * because these are NOT application specific, this will be user or system
-	 * specific preferences.
-	 *
-	 * @param appSpecificRootNode
-	 * @return
-	 */
-	public static canShowQuality(Preferences appSpecificRootNode): boolean
-	{
-		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
-		return qualNode.getBoolean(Quality.SHOW_QUALITY_FLAGS, true);
-	}
-
-	/**
-	 * Sets the application specific show quality flag to the value provided.
-	 *
-	 * @param appSpecificRootNode
-	 * @param showQuality
-	 */
-	public static setShowQuality(Preferences appSpecificRootNode, boolean showQuality): void
-	{
-		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
-		qualNode.putBoolean(Quality.SHOW_QUALITY_FLAGS, showQuality);
-	}
-
-	/**
-	 * Sets the application specific show quality flag to the value provided.
-	 *
-	 * @param appSpecificRootNode
-	 * @param editQuality
-	 */
-	public static setCanEditQuality(Preferences appSpecificRootNode, boolean editQuality): void
-	{
-		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
-		qualNode.putBoolean(Quality.QUALITY_FLAGS_EDITABLE, editQuality);
-	}
-
-	/**
-	 * Adds a Preference change listener to the node that contains the quality
-	 * settings.
-	 *
-	 * @param appSpecificRootNode
-	 * @param listener
-	 */
-	public static addQualityPreferencesListener(Preferences appSpecificRootNode, PreferenceChangeListener listener): void
-	{
-		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
-
-		//Make sure we enforce a single preference change listener in the node.
-		qualNode.removePreferenceChangeListener(listener);
-		qualNode.addPreferenceChangeListener(listener);
-	}
-
-	/**
-	 * Adds a Preference change listener to the node that contains the quality
-	 * settings.
-	 *
-	 * @param appSpecificRootNode
-	 * @param listener
-	 */
-	public static removeQualityPreferencesListener(Preferences appSpecificRootNode, PreferenceChangeListener listener): void
-	{
-		Preferences qualNode = Quality.getQualityPrefs(appSpecificRootNode);
-		qualNode.removePreferenceChangeListener(listener);
-	}
-
-	/**
 	 * Method for transforming underlying QualityTx into an accessible Collections object. This method will perform the entire calculation for
 	 * the times array from the getTimes() method and uses the QualityTx methods to transform the symbolic String quality into integers.
 	 *
@@ -2961,37 +2835,37 @@ export class Quality {
 
 	public toBinaryString(): string
 	{
-		return this.toString(BINARY_STRING);
+		return this.toString(QualityStringRenderer.BINARY_STRING);
 	}
 
 	public toOctalString(): string
 	{
-		return this.toString(OCTAL_STRING);
+		return this.toString(QualityStringRenderer.OCTAL_STRING);
 	}
 
 	public toSymbolicString(): string
 	{
-		return this.toString(SYMBOLIC_STRING);
+		return this.toString(QualityStringRenderer.SYMBOLIC_STRING);
 	}
 
 	public toSymbolicRevisedString(): string
 	{
-		return this.toString(SYMBOLIC_REVISED_STRING);
+		return this.toString(QualityStringRenderer.SYMBOLIC_REVISED_STRING);
 	}
 
 	public toSymbolicTestsString(): string
 	{
-		return this.toString(SYMBOLIC_TESTS_STRING);
+		return this.toString(QualityStringRenderer.SYMBOLIC_TESTS_STRING);
 	}
 
 	public toHexString(): string
 	{
-		return HEX_STRING.toString();
+		return QualityStringRenderer.HEX_STRING.toString();
 	}
 
 	public toIntegerString(): string
 	{
-		return INTEGER_STRING.toString();
+		return QualityStringRenderer.INTEGER_STRING.toString();
 	}
 
 	public toIntegerStringElementAt(elementIndex: number): string
