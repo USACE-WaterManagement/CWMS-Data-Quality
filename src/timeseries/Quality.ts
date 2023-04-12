@@ -1,6 +1,6 @@
-import * as pako from 'pako';
-import TreeMap from 'ts-treemap'
-import { QualityStringRenderer } from './QualityStringRenderer';
+import * as pako from "pako";
+import TreeMap from "ts-treemap";
+import { QualityStringRenderer } from "./QualityStringRenderer";
 
 interface ZonedDateTime {
   date: Date;
@@ -230,18 +230,23 @@ export class Quality {
     tmp._isCompressed = true;
   }
 
-  public static uncompressQuality(tmp: Quality): Quality {
-    if (tmp._isCompressed) {
-      tmp._elementData = new Int32Array(tmp._size * 4);
-      const numSoFar = pako.inflate(
-        new Int32Array(tmp._elementDataCompressed.buffer),
-        tmp._elementData
-      );
-      const num = numSoFar;
+  public static uncompressQuality(tmp: Quality): void {
+    // If the data is already uncompressed, there's nothing to do.
+    if (!tmp._isCompressed) {
+      return;
+    }
+    // If the compressed data is null or undefined, we can't uncompress it.
+    const compressedData = tmp._elementDataCompressed;
+    if (compressedData) {
+      // Use pako to inflate the compressed data and create a Uint8Array from the result.
+      const inflated = pako.inflate(compressedData.buffer);
+      // Convert the Uint8Array to an Int32Array
+      const intArray = new Int32Array(inflated.buffer);
+      tmp._elementData = intArray;
+      // Clean up by nulling out the compressed data and updating the isCompressed flag.
       tmp._elementDataCompressed = null;
       tmp._isCompressed = false;
     }
-    return tmp;
   }
 
   public static emptyQualityValue(): number {
@@ -483,10 +488,8 @@ export class Quality {
     );
   }
 
-  public isMissing(
-    elementIndex: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public isMissing(elementIndex: number): boolean {
+    // throws DataSetTxQualityFlagException
     // if (!isBitSet(elementIndex, SCREENED_BIT))
     // {
     // throw new DataSetTxQualityFlagException(
@@ -512,10 +515,8 @@ export class Quality {
     Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
   }
 
-  public static isMissing(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isMissing(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     // if (!isBitSet(bytes, SCREENED_BIT))
     // {
     // throw new DataSetTxQualityFlagException(
@@ -531,17 +532,13 @@ export class Quality {
     );
   }
 
-  public static isNotMissing(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotMissing(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isMissing(bytes);
   }
 
-  public static isNotMissing_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotMissing_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isMissing_int(intQuality);
   }
 
@@ -594,31 +591,23 @@ export class Quality {
     Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
   }
 
-  public static isProtected(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isProtected(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.PROTECTED_BIT);
   }
 
-  public static isProtected_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isProtected_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.PROTECTED_BIT);
   }
 
-  public static isNotProtected(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotProtected(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isProtected(bytes);
   }
 
-  public static isNotProtected_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotProtected_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isProtected_int(intQuality);
   }
 
@@ -873,17 +862,13 @@ export class Quality {
     );
   }
 
-  public static isNotQuestion(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotQuestion(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isQuestion(bytes);
   }
 
-  public static isNotQuestion_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotQuestion_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isQuestion_int(intQuality);
   }
 
@@ -991,10 +976,8 @@ export class Quality {
     this.setBit(elementIndex, Quality.VALUE_DIFFERS_BIT);
   }
 
-  public isRevised(
-    elementIndex: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public isRevised(elementIndex: number): boolean {
+    // throws DataSetTxQualityFlagException
     // Is Revised if
     // differs from original value,
     // is manually entered, or
@@ -1194,10 +1177,8 @@ export class Quality {
     return !Quality.isReject(bytes);
   }
 
-  public static isNotReject_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotReject_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isReject_int(intQuality);
   }
 
@@ -1406,10 +1387,8 @@ export class Quality {
     return Quality.setBit_int(intQuality, Quality.VALUE_DIFFERS_BIT);
   }
 
-  public static isRevised(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isRevised(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     // Is Revised if
     // differs from original value,
     // is manually entered, or
@@ -1426,10 +1405,8 @@ export class Quality {
     );
   }
 
-  public static isRevised_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isRevised_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     // Is Revised if
     // differs from original value,
     // is manually entered, or
@@ -1446,17 +1423,13 @@ export class Quality {
     );
   }
 
-  public static isNotRevised(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotRevised(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isRevised(bytes);
   }
 
-  public isNotRevised_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public isNotRevised_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isRevised_int(intQuality);
   }
 
@@ -2018,10 +1991,8 @@ export class Quality {
     return Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT3);
   }
 
-  public isOkay(
-    elementIndex: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public isOkay(elementIndex: number): boolean {
+    // throws DataSetTxQualityFlagException
     // if (!isBitSet(elementIndex, SCREENED_BIT))
     // {
     // throw new DataSetTxQualityFlagException(
@@ -2030,10 +2001,8 @@ export class Quality {
     return this.isBitSet(elementIndex, Quality.OKAY_BIT);
   }
 
-  public isNotOkay(
-    elementIndex: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public isNotOkay(elementIndex: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !this.isOkay(elementIndex);
   }
 
@@ -2050,10 +2019,8 @@ export class Quality {
     this.setBit(elementIndex, Quality.SCREENED_BIT);
   }
 
-  public static isOkay(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isOkay(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     // if (!isBitSet(bytes, SCREENED_BIT))
     // {
     // throw new DataSetTxQualityFlagException(
@@ -2069,17 +2036,13 @@ export class Quality {
     );
   }
 
-  public static isNotOkay(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotOkay(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isOkay(bytes);
   }
 
-  public static isNotOkay_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotOkay_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isOkay_int(intQuality);
   }
 
@@ -2134,31 +2097,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.ABSOLUTEMAGNITUDE_BIT);
   }
 
-  public static isAbsoluteMagnitude(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isAbsoluteMagnitude(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.ABSOLUTEMAGNITUDE_BIT);
   }
 
-  public static isAbsoluteMagnitude_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isAbsoluteMagnitude_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.ABSOLUTEMAGNITUDE_BIT);
   }
 
-  public static isNotAbsoluteMagnitude(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotAbsoluteMagnitude(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isAbsoluteMagnitude(bytes);
   }
 
-  public static isNotAbsoluteMagnitude_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotAbsoluteMagnitude_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isAbsoluteMagnitude_int(intQuality);
   }
 
@@ -2194,31 +2149,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.CONSTANTVALUE_BIT);
   }
 
-  public static isConstantValue(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isConstantValue(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.CONSTANTVALUE_BIT);
   }
 
-  public static isConstantValue_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isConstantValue_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.CONSTANTVALUE_BIT);
   }
 
-  public static isNotConstantValue(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotConstantValue(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isConstantValue(bytes);
   }
 
-  public static isNotConstantValue_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotConstantValue_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isConstantValue_int(intQuality);
   }
 
@@ -2254,31 +2201,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.RATEOFCHANGE_BIT);
   }
 
-  public static isRateOfChange(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isRateOfChange(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.RATEOFCHANGE_BIT);
   }
 
-  public static isRateOfChange_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isRateOfChange_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.RATEOFCHANGE_BIT);
   }
 
-  public static isNotRateOfChange(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotRateOfChange(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isRateOfChange(bytes);
   }
 
-  public static isNotRateOfChange_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotRateOfChange_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isRateOfChange_int(intQuality);
   }
 
@@ -2314,31 +2253,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.RELATIVEMAGNITUDE_BIT);
   }
 
-  public static isRelativeMagnitude(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isRelativeMagnitude(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.RELATIVEMAGNITUDE_BIT);
   }
 
-  public static isRelativeMagnitude_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isRelativeMagnitude_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.RELATIVEMAGNITUDE_BIT);
   }
 
-  public static isNotRelativeMagnitude(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotRelativeMagnitude(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isRelativeMagnitude(bytes);
   }
 
-  public static isNotRelativeMagnitude_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotRelativeMagnitude_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isRelativeMagnitude_int(intQuality);
   }
 
@@ -2374,31 +2305,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.DURATIONMAGNITUDE_BIT);
   }
 
-  public static isDurationMagnitude(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isDurationMagnitude(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.DURATIONMAGNITUDE_BIT);
   }
 
-  public static isDurationMagnitude_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isDurationMagnitude_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.DURATIONMAGNITUDE_BIT);
   }
 
-  public static isNotDurationMagnitude(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotDurationMagnitude(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isDurationMagnitude(bytes);
   }
 
-  public static isNotDurationMagnitude_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotDurationMagnitude_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isDurationMagnitude_int(intQuality);
   }
 
@@ -2434,31 +2357,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.NEGATIVEINCREMENTAL_BIT);
   }
 
-  public static isNegativeIncremental(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNegativeIncremental(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.NEGATIVEINCREMENTAL_BIT);
   }
 
-  public static isNegativeIncremental_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNegativeIncremental_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.NEGATIVEINCREMENTAL_BIT);
   }
 
-  public static isNotNegativeIncremental(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotNegativeIncremental(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isNegativeIncremental(bytes);
   }
 
-  public static isNotNegativeIncremental_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotNegativeIncremental_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isNegativeIncremental_int(intQuality);
   }
 
@@ -2494,31 +2409,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.USER_DEFINED_TEST_BIT);
   }
 
-  public static isUserDefinedTest(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isUserDefinedTest(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.USER_DEFINED_TEST_BIT);
   }
 
-  public static isUserDefinedTest_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isUserDefinedTest_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.USER_DEFINED_TEST_BIT);
   }
 
-  public static isNotUserDefinedTest(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotUserDefinedTest(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isUserDefinedTest(bytes);
   }
 
-  public static isNotUserDefinedTest_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotUserDefinedTest_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isUserDefinedTest_int(intQuality);
   }
 
@@ -2554,31 +2461,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.DISTRIBUTIONTEST_BIT);
   }
 
-  public static isDistributionTest(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isDistributionTest(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet(bytes, Quality.DISTRIBUTIONTEST_BIT);
   }
 
-  public static isDistributionTest_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isDistributionTest_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.DISTRIBUTIONTEST_BIT);
   }
 
-  public static isNotDistributionTest(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotDistributionTest(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isDistributionTest(bytes);
   }
 
-  public static isNotDistributionTest_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotDistributionTest_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isDistributionTest_int(intQuality);
   }
 
@@ -2614,31 +2513,23 @@ export class Quality {
     this.setBit(elementIndex, Quality.GAGELIST_BIT);
   }
 
-  public static isGageList(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isGageList(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return this.isBitSet(bytes, Quality.GAGELIST_BIT);
   }
 
-  public static isGageList_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isGageList_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return Quality.isBitSet_int(intQuality, Quality.GAGELIST_BIT);
   }
 
-  public static isNotGageList(
-    bytes: Int32Array
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotGageList(bytes: Int32Array): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isGageList(bytes);
   }
 
-  public static isNotGageList_int(
-    intQuality: number
-  ): boolean // throws DataSetTxQualityFlagException
-  {
+  public static isNotGageList_int(intQuality: number): boolean {
+    // throws DataSetTxQualityFlagException
     return !Quality.isGageList_int(intQuality);
   }
 
@@ -2727,14 +2618,14 @@ export class Quality {
   }
 
   /**
-       * Gets a sorted map of dates to quality values for the given times array, using the provided function to extract the quality values.
-       * If a `zoneId` is provided, the map will use `ZonedDateTime` objects instead of `Date` objects.
-       *
-       * @param timesArray An array of timestamps in milliseconds since the Unix epoch.
-       * @param zoneId Optional. A string representing the time zone to use for `ZonedDateTime` objects. If not provided, `Date` objects will be used instead.
-       *
-       * @returns A sorted map of dates or `ZonedDateTime` objects to quality values.
-       */
+   * Gets a sorted map of dates to quality values for the given times array, using the provided function to extract the quality values.
+   * If a `zoneId` is provided, the map will use `ZonedDateTime` objects instead of `Date` objects.
+   *
+   * @param timesArray An array of timestamps in milliseconds since the Unix epoch.
+   * @param zoneId Optional. A string representing the time zone to use for `ZonedDateTime` objects. If not provided, `Date` objects will be used instead.
+   *
+   * @returns A sorted map of dates or `ZonedDateTime` objects to quality values.
+   */
   getQualityIntegers(
     timesArray: number[],
     zoneId?: string
@@ -2771,13 +2662,13 @@ export class Quality {
     return retval;
   }
 
-  private getDateQualityMap(
+  getDateQualityMap<V>(
     qualityExtractor: (index: number) => V,
     timesArray: number[]
   ): Map<Date, V> {
-    const retval: TreeMap<Date, V> = new TreeMap<Date, V>();
+    const retval: Map<Date, V> = new Map<Date, V>();
     for (let i = 0; i < timesArray.length; i++) {
-      const date: Date = new Date(timesArray[i]);
+      const date = new Date(timesArray[i]);
       retval.set(date, qualityExtractor(i));
     }
     return retval;
