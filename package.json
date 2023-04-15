@@ -4,6 +4,10 @@
   "version": "1.2.1",
   "description": "A JavaScript implementation of the CWMS QualityTx class. Enables working with Time Series Quality integers. Can help in determining the screening, validity, value range, revision, replacement cause, replacement method, tests failing, and protection of a given Timeseries Quality Code. Created for use with CDA. ",
   "main": "index.js",
+  "files": [
+    "dist/**/*"
+  ],
+  "browser": "dist/index.min.js",
   "directories": {
     "example": "examples",
     "test": "tests"
@@ -13,14 +17,19 @@
     "url": "https://github.com/krowvin/cwms-data-quality.git",
     "directory": "packages/cwms-data-quality"
   },
+  "types": "dist/types/index.d.ts",
   "devDependencies": {
+    "@types/node": "^18.15.11",
     "@types/pako": "^2.0.0",
-    "csv-parse": "^5.3.6"
+    "csv-parse": "^5.3.6",
+    "terser": "^5.16.9",
+    "typescript": "^5.0.4"
   },
   "scripts": {
-    "test": "node tests/test.js",
+    "test": "node tests/import_test.js",
     "dist": "echo Creating Dist... && npm pack && xcopy /F /Y *.tgz dist && del *.tgz",
-    "build": "npx --yes terser -c -m -o index.min.mjs -- index.mjs && xcopy /F /Y index.min.mjs docs\\js\\index.min.mjs* && npx --yes terser -c -m -o docs/js/main.min.js -- docs/js/main.js",
+    "minify": "cd src && tsc && cd build && node minify.cjs",
+    "build": "cd src && tsc",
     "deploy": "echo Running Test... && npm run test && echo Building Files... && npm run build && npm publish"
   },
   "homepage": "https://krowvin.github.io/CWMS-Data-Quality",
@@ -43,8 +52,14 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "js-joda": "^1.11.0",
     "ts-treemap": "^1.1.0",
     "typescript-collections": "^1.3.3"
+  },
+  "paths": {
+    "*": [
+      "node_modules/*",
+      "dist/timeseries/*",
+      "dist/*"
+    ]
   }
 }

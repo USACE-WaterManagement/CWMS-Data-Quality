@@ -1,4 +1,2 @@
-import { Quality } from "./timeseries/Quality"
-import { QualityStringRenderer } from "./timeseries/QualityStringRenderer"
-
-export { Quality, QualityStringRenderer}
+export {Quality} from "./timeseries/Quality"
+export {QualityStringRenderer} from "./timeseries/QualityStringRenderer"

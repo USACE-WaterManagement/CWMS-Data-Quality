@@ -9,6 +9,13 @@ class DataSetTxQualityFlagException extends Error {
   }
 }
 
+class DataFormatException extends Error {
+  constructor(arg: string | Error = "") {
+    super(typeof arg === "string" ? arg : arg.message);
+    Object.setPrototypeOf(this, DataFormatException.prototype);
+  }
+}
+
 interface ZonedDateTime {
   date: Date;
   timeZone: string;
@@ -20,9 +27,6 @@ export class Quality {
 
   private static readonly ELEMENT_SIZE_IN_BYTES = 4;
   private static readonly NULL_VALUE = 0x00;
-  // * For you internal birds after the correct byte is found
-  // * we will subtract one (1) from the bit position
-  // * because real programmers do it differently!
   // * Actual byte order is: 0[31-24] 1[23-16] 2[15-8] 3[7-0]
 
   private static readonly SCREENED_BIT = 1;
@@ -251,14 +255,24 @@ export class Quality {
     // If the compressed data is null or undefined, we can't uncompress it.
     const compressedData = tmp._elementDataCompressed;
     if (compressedData) {
-      // Use pako to inflate the compressed data and create a Uint8Array from the result.
-      const inflated = pako.inflate(compressedData.buffer);
-      // Convert the Uint8Array to an Int32Array
-      const intArray = new Int32Array(inflated.buffer);
-      tmp._elementData = intArray;
-      // Clean up by nulling out the compressed data and updating the isCompressed flag.
-      tmp._elementDataCompressed = null;
-      tmp._isCompressed = false;
+      try {
+        // Use pako to inflate the compressed data and create a Uint8Array from the result.
+        const inflated = pako.inflate(compressedData.buffer);
+        // Convert the Uint8Array to an Int32Array
+        const intArray = new Int32Array(inflated.buffer);
+        tmp._elementData = intArray;
+        // Clean up by nulling out the compressed data and updating the isCompressed flag.
+        tmp._elementDataCompressed = null;
+        tmp._isCompressed = false;
+      } catch (err) {
+        throw new DataFormatException(
+          "Failed to compress Data Quality. Error: " + err
+        );
+      }
+    } else {
+      throw new Error(
+        "Quality data is null or undefined. Failed to uncompress Quality."
+      );
     }
   }
 
@@ -325,7 +339,7 @@ export class Quality {
    *
    * @param {number} elementIndex - The index of the element.
    *
-   * @returns {Bitmap} - The Bitmap of the element at the specified index.
+   * @returns {Int32Array} - The Bitmap of the element at the specified index.
    *
    * @throws {RangeError} - If the specified index is out of range.
    */
@@ -615,6 +629,11 @@ export class Quality {
     );
   }
 
+  /**
+    Checks if the quality value represents a graphical estimate based on its manual change replacement method bits.
+    @param intQuality - The integer value of the quality to be checked.
+    @returns A boolean indicating whether the quality value represents a graphical estimate or not.
+    */
   public static isGraphicalEstimate_int(intQuality: number): boolean {
     // Manual Change Replacement Method set 4 = 0100
     // "E" for Graphical Estimate
@@ -625,7 +644,13 @@ export class Quality {
       Quality.isBitClear_int(intQuality, Quality.REPLACE_METHOD_BIT3)
     );
   }
-
+  /**
+   * Checks whether an element is missing based on its index.
+   *
+   * @param elementIndex - The index of the element to be checked.
+   * @throws {DataSetTxQualityFlagException} If the element is not screened.
+   * @returns A boolean indicating whether the element is missing or not.
+   */
   public isMissing(elementIndex: number): boolean {
     if (!this.isBitSet(elementIndex, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -635,15 +660,31 @@ export class Quality {
     return this.isBitSet(elementIndex, Quality.MISSING_BIT);
   }
 
+  /**
+   * Checks whether an element is not missing based on its index.
+   *
+   * @param elementIndex - The index of the element to be checked.
+   * @returns A boolean indicating whether the element is not missing or not.
+   */
   public isNotMissing(elementIndex: number): boolean {
     return Quality.isBitClear_int(elementIndex, Quality.MISSING_BIT);
   }
 
+  /**
+   * Clears the missing bit of an element based on its index and sets the screened bit.
+   *
+   * @param elementIndex - The index of the element whose missing bit is to be cleared.
+   */
   public clearMissing(elementIndex: number): void {
     Quality.clearBit_int(elementIndex, Quality.MISSING_BIT);
     Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Sets the missing bit of an element based on its index, and clears other quality bits except for screened bit.
+   *
+   * @param elementIndex - The index of the element whose missing bit is to be set.
+   */
   public setMissing(elementIndex: number): void {
     Quality.setBit_int(elementIndex, Quality.MISSING_BIT);
     Quality.clearBit_int(elementIndex, Quality.OKAY_BIT);
@@ -652,6 +693,13 @@ export class Quality {
     Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Checks whether an element is missing based on its integer array representation.
+   *
+   * @param bytes - The integer array representation of the element to be checked.
+   * @throws {DataSetTxQualityFlagException} If the element is not screened.
+   * @returns A boolean indicating whether the element is missing or not.
+   */
   public static isMissing(bytes: Int32Array): boolean {
     if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -661,6 +709,12 @@ export class Quality {
     return Quality.isBitSet(bytes, Quality.MISSING_BIT);
   }
 
+  /**
+   * Checks whether an element is missing based on its integer representation.
+   *
+   * @param intQuality - The integer representation of the element to be checked.
+   * @returns A boolean indicating whether the element is missing or not.
+   */
   public static isMissing_int(intQuality: number): boolean {
     return (
       Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT) &&
@@ -668,6 +722,13 @@ export class Quality {
     );
   }
 
+  /**
+   * Checks whether an element is not missing based on its integer array representation.
+   *
+   * @param bytes - The integer array representation of the element to be checked.
+   * @throws {DataSetTxQualityFlagException} If the element is not screened.
+   * @returns A boolean indicating whether the element is not missing or not.
+   */
   public static isNotMissing(bytes: Int32Array): boolean {
     if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -677,6 +738,13 @@ export class Quality {
     return !Quality.isMissing(bytes);
   }
 
+  /**
+   * Checks whether an element is not missing based on its integer representation.
+   *
+   * @param intQuality - The integer representation of the element to be checked.
+   * @throws {DataSetTxQualityFlagException} If the element is not screened.
+   * @returns A boolean indicating whether the element is not missing or not.
+   */
   public static isNotMissing_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -686,11 +754,23 @@ export class Quality {
     return !Quality.isMissing_int(intQuality);
   }
 
+  /**
+   * Clears the missing bit of an element based on its integer array representation, and sets the screened bit.
+   *
+   * @param bytes - The integer array representation of the element whose missing bit is to be cleared.
+   * @returns A new integer array with the updated quality bits.
+   */
   public static clearMissing(bytes: Int32Array): Int32Array {
     const tmp: Int32Array = Quality.clearBit(bytes, Quality.MISSING_BIT);
     return Quality.setBit(tmp, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Clears the missing bit of an element based on its integer representation, and sets the screened bit.
+   *
+   * @param intQuality - The integer representation of the element whose missing bit is to be cleared.
+   * @returns A new integer with the updated quality bits.
+   */
   public static clearMissing_int(intQuality: number): number {
     return Quality.setBit_int(
       Quality.clearBit_int(intQuality, Quality.MISSING_BIT),
@@ -698,6 +778,12 @@ export class Quality {
     );
   }
 
+  /**
+   * Sets the missing bit of an element based on its integer array representation, and clears other quality bits except for screened bit.
+   *
+   * @param bytes - The integer array representation of the element whose missing bit is to be set.
+   * @returns A new integer array with the updated quality bits.
+   */
   public static setMissing(bytes: Int32Array): Int32Array {
     let tmp: Int32Array = Quality.setBit(bytes, Quality.MISSING_BIT);
     tmp = Quality.clearBit(tmp, Quality.OKAY_BIT);
@@ -706,6 +792,11 @@ export class Quality {
     return Quality.setBit(tmp, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Sets the MISSING_BIT flag on an integer quality value and clears OKAY_BIT, QUESTION_BIT, and REJECT_BIT flags. Then, sets the SCREENED_BIT flag and returns the resulting integer quality value.
+   * @param intQuality - An integer representing the quality value to modify.
+   * @returns The modified integer quality value with the MISSING_BIT, SCREENED_BIT flags set and the OKAY_BIT, QUESTION_BIT, and REJECT_BIT flags cleared.
+   */
   public static setMissing_int(intQuality: number): number {
     let tmp: number = Quality.setBit_int(intQuality, Quality.MISSING_BIT);
     tmp = Quality.clearBit_int(tmp, Quality.OKAY_BIT);
@@ -714,6 +805,11 @@ export class Quality {
     return Quality.setBit_int(tmp, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Determines if an element is protected by checking if the SCREENED_BIT and PROTECTED_BIT flags are set on an integer quality value.
+   * @param elementIndex - An integer representing the index of the element to check.
+   * @returns True if the element is protected (SCREENED_BIT and PROTECTED_BIT flags are set), false otherwise.
+   */
   public isProtected(elementIndex: number): boolean {
     return (
       Quality.isScreened_int(elementIndex) &&
@@ -721,20 +817,39 @@ export class Quality {
     );
   }
 
+  /**
+   * Determines if an element is not protected by checking if the SCREENED_BIT flag is set and the PROTECTED_BIT flag is not set on an integer quality value.
+   * @param elementIndex - An integer representing the index of the element to check.
+   * @returns True if the element is not protected (SCREENED_BIT flag is set and PROTECTED_BIT flag is not set), false otherwise.
+   */
   public isNotProtected(elementIndex: number): boolean {
     return !Quality.isProtected_int(elementIndex);
   }
 
+  /**
+   * Clears the PROTECTED_BIT flag and sets the SCREENED_BIT flag on an integer quality value for the specified element index.
+   * @param elementIndex - An integer representing the index of the element to modify.
+   */
   public clearProtected(elementIndex: number): void {
     Quality.clearBit_int(elementIndex, Quality.PROTECTED_BIT);
     Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Sets the PROTECTED_BIT flag and the SCREENED_BIT flag on an integer quality value for the specified element index.
+   * @param elementIndex - An integer representing the index of the element to modify.
+   */
   public setProtected(elementIndex: number): void {
     Quality.setBit_int(elementIndex, Quality.PROTECTED_BIT);
     Quality.setBit_int(elementIndex, Quality.SCREENED_BIT);
   }
 
+  /**
+   * Determines if an element is protected by checking if the SCREENED_BIT and PROTECTED_BIT flags are set in an Int32Array.
+   * @param bytes - An Int32Array containing the quality values to check.
+   * @throws {DataSetTxQualityFlagException} If the SCREENED_BIT flag is not set in the Int32Array.
+   * @returns True if the element is protected (SCREENED_BIT and PROTECTED_BIT flags are set), false otherwise.
+   */
   public static isProtected(bytes: Int32Array): boolean {
     if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -744,6 +859,12 @@ export class Quality {
     return Quality.isBitSet(bytes, Quality.PROTECTED_BIT);
   }
 
+  /**
+   * Determines if an integer quality value is protected by checking if the SCREENED_BIT and PROTECTED_BIT flags are set.
+   * @param intQuality - An integer representing the quality value to check.
+   * @throws {DataSetTxQualityFlagException} If the SCREENED_BIT flag is not set on the integer quality value.
+   * @returns True if the integer quality value is protected (SCREENED_BIT and PROTECTED_BIT flags are set), false otherwise.
+   */
   public static isProtected_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -753,6 +874,12 @@ export class Quality {
     return Quality.isBitSet_int(intQuality, Quality.PROTECTED_BIT);
   }
 
+  /**
+   * Determines if an element is not protected by checking if the SCREENED_BIT flag is set and the PROTECTED_BIT flag is not set in an Int32Array.
+   * @param bytes - An Int32Array containing the quality values to check.
+   * @throws {DataSetTxQualityFlagException} If the SCREENED_BIT flag is not set in the Int32Array.
+   * @returns True if the element is not protected (SCREENED_BIT flag is set and PROTECTED_BIT flag is not set), false otherwise.
+   */
   public static isNotProtected(bytes: Int32Array): boolean {
     if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -762,6 +889,12 @@ export class Quality {
     return !Quality.isProtected(bytes);
   }
 
+  /**
+   * Determines if an integer quality value is not protected by checking if the SCREENED_BIT flag is set and the PROTECTED_BIT flag is not set.
+   * @param intQuality - An integer representing the quality value to check.
+   * @throws {DataSetTxQualityFlagException} If the SCREENED_BIT flag is not set on the integer quality value.
+   * @returns True if the integer quality value is not protected (SCREENED_BIT flag is set and PROTECTED_BIT flag is not set), false otherwise.
+   */
   public static isNotProtected_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
@@ -771,11 +904,21 @@ export class Quality {
     return !Quality.isProtected_int(intQuality);
   }
 
+  /**
+   * Clears the PROTECTED_BIT flag and sets the SCREENED_BIT flag on each integer quality value in an Int32Array.
+   * @param bytes - An Int32Array containing the quality values to modify.
+   * @returns A new Int32Array with the modified integer quality values.
+   */
   public static clearProtected(bytes: Int32Array): Int32Array {
     const tmp: Int32Array = Quality.clearBit(bytes, Quality.PROTECTED_BIT);
     return Quality.setBit(tmp, Quality.SCREENED_BIT);
   }
 
+  /**
+    Sets the SCREENED and clears the PROTECTED bit in the input intQuality.
+    @param intQuality - The input integer representing the quality.
+    @returns The modified quality integer.
+    */
   public static clearProtected_int(intQuality: number): number {
     return Quality.setBit_int(
       Quality.clearBit_int(intQuality, Quality.PROTECTED_BIT),
@@ -783,6 +926,11 @@ export class Quality {
     );
   }
 
+  /**
+    Sets the PROTECTED and SCREENED bits in the input bytes.
+    @param bytes - The input Int32Array to modify.
+    @returns A new Int32Array with the modified bits.
+    */
   public static setProtected(bytes: Int32Array): Int32Array {
     return Quality.setBit(
       Quality.setBit(bytes, Quality.PROTECTED_BIT),
@@ -790,6 +938,11 @@ export class Quality {
     );
   }
 
+  /**
+    Sets the PROTECTED and SCREENED bits in the input intQuality.
+    @param intQuality - The input integer representing the quality.
+    @returns The modified quality integer.
+    */
   public static setProtected_int(intQuality: number): number {
     return Quality.setBit_int(
       Quality.setBit_int(intQuality, Quality.PROTECTED_BIT),
@@ -797,22 +950,55 @@ export class Quality {
     );
   }
 
+    /**
+    
+    Checks whether the bit at the specified bitPosition is clear (not set) in the input bytes.
+    @param bytes - The input Int32Array to check.
+    @param bitPosition - The position of the bit to check (0-indexed).
+    @returns true if the bit is not set, otherwise false.
+    */
   public static isBitClear(bytes: Int32Array, bitPosition: number): boolean {
     return !Quality.isBitSet(bytes, bitPosition);
   }
 
+    /**
+  
+  Checks whether all bits in the input bytes are clear (not set).
+  @param bytes - The input Int32Array to check.
+  @returns true if all bits are not set, otherwise false.
+  */
   public static isQualityClear(bytes: Int32Array): boolean {
     return Quality.getInteger(bytes) == 0;
   }
 
+    /**
+  
+  Checks whether the input intQuality is equal to 0.
+  @param intQuality - The input integer representing the quality.
+  @returns true if the input is 0, otherwise false.
+  */
   public static isQualityClear_int(intQuality: number): boolean {
     return intQuality == 0;
   }
 
+    /**
+  
+  Checks whether the bit at the specified bitPosition is set in the input intQuality.
+  @param intQuality - The input integer representing the quality.
+  @param bitPosition - The position of the bit to check (1-indexed).
+  @returns true if the bit is set, otherwise false.
+  */
   public static isBitSet_int(intQuality: number, bitPosition: number): boolean {
     return (intQuality & (1 << (bitPosition - 1))) != 0;
   }
 
+    /**
+  
+  Checks whether the bit at the specified bitPosition is clear (not set) in the input intQuality.
+  @param intQuality - The input integer representing the quality.
+  @param bitPosition - The position of the bit to check (1-indexed).
+  @returns true if the bit is not set, otherwise false.
+  */
   public static isBitClear_int(
     intQuality: number,
     bitPosition: number
@@ -820,14 +1006,33 @@ export class Quality {
     return (intQuality & (1 << (bitPosition - 1))) == 0;
   }
 
+  /**
+  Sets the bit at the specified bitPosition in the input intQuality.
+  @param intQuality - The input integer representing the quality.
+  @param bitPosition - The position of the bit to set (1-indexed).
+  @returns The modified quality integer.
+  */
   public static setBit_int(intQuality: number, bitPosition: number): number {
     return intQuality | (1 << (bitPosition - 1));
   }
 
+  /**
+  Clears (resets) the bit at the specified bitPosition in the input intQuality.
+  @param intQuality - The input integer representing the quality.
+  @param bitPosition - The position of the bit to clear (1-indexed).
+  @returns The modified quality integer.
+  */
   public static clearBit_int(intQuality: number, bitPosition: number): number {
     return intQuality & ~(1 << (bitPosition - 1));
   }
 
+  /**
+     Checks whether the bit at the specified bitPosition is set in the element at the specified elementIndex.
+    @param elementIndex - The index of the element to check.
+    @param bitPosition - The position of the bit to check (1-indexed).
+    @returns true if the bit is set, otherwise false.
+    @throws {RangeError} If the elementIndex is out of range.
+  */
   public isBitSet(elementIndex: number, bitPosition: number): boolean {
     if (elementIndex > this._size || elementIndex < 0) {
       throw new RangeError(
@@ -837,6 +1042,14 @@ export class Quality {
     const bytes: Int32Array = this.getElementAt(elementIndex);
     return Quality.isBitSet(bytes, bitPosition);
   }
+
+    /**
+   * Sets the specified bit position as 'screened' and clears the 'protected' bit
+   * in the provided integer.
+   *
+   * @param intQuality The integer representing the quality with the bits to modify.
+   * @returns The modified integer with the 'screened' bit set and 'protected' bit cleared.
+   */
   public static isBitSet(bytes: Int32Array, bitPosition: number): boolean {
     const targetByte = Math.floor((32 - bitPosition) / 8);
     const targetBit = (bitPosition - 1) % 8;
@@ -844,14 +1057,32 @@ export class Quality {
     return (base & Quality.MASK[targetBit]) != 0;
   }
 
+    /**
+   * Checks if a specific bit is clear or not.
+   * @param elementIndex - The index of the element to check.
+   * @param bitPosition - The bit position to check.
+   * @returns A boolean indicating whether the bit is clear or not.
+   */
   public isBitClear(elementIndex: number, bitPosition: number): boolean {
     return !this.isBitSet(elementIndex, bitPosition);
   }
 
+    /**
+   * Returns a boolean indicating whether all bits in the provided Int32Array are clear (0).
+   *
+   * @param bytes The Int32Array representing the quality to check.
+   * @returns True if all bits are clear, false otherwise.
+   */
   public isQualityClear(elementIndex: number): boolean {
     return this.getIntegerAt(elementIndex) == 0;
   }
 
+    /**
+   * Sets a specific bit at the given position in an element.
+   * @param elementIndex - The index of the element where the bit will be set.
+   * @param bitPosition - The bit position to set.
+   * @throws {RangeError} If the given element index is out of range.
+   */
   public setBit(elementIndex: number, bitPosition: number): void {
     if (elementIndex > this._size || elementIndex < 0) {
       throw new RangeError(
@@ -864,6 +1095,12 @@ export class Quality {
     return;
   }
 
+    /**
+   * Sets a specific bit at the given position in a byte array.
+   * @param bytes - The byte array to set the bit in.
+   * @param bitPosition - The bit position to set.
+   * @returns The modified byte array.
+   */
   public static setBit(bytes: Int32Array, bitPosition: number): Int32Array {
     const targetByte = Math.floor((32 - bitPosition) / 8);
     const base = bytes[targetByte];
@@ -872,6 +1109,12 @@ export class Quality {
     return bytes;
   }
 
+    /**
+   * Clears a specific bit at the given position in an element.
+   * @param elementIndex - The index of the element where the bit will be cleared.
+   * @param bitPosition - The bit position to clear.
+   * @throws {RangeError} If the given element index is out of range.
+   */
   public clearBit(elementIndex: number, bitPosition: number): void {
     if (elementIndex > this._size || elementIndex < 0) {
       throw new RangeError(
@@ -884,6 +1127,12 @@ export class Quality {
     return;
   }
 
+    /**
+   * Clears a specific bit at the given position in a byte array.
+   * @param bytes - The byte array to clear the bit in.
+   * @param bitPosition - The bit position to clear.
+   * @returns The modified byte array.
+   */
   public static clearBit(bytes: Int32Array, bitPosition: number): Int32Array {
     const targetByte: number = Math.floor((32 - bitPosition) / 8);
     const base: number = bytes[targetByte];
@@ -895,14 +1144,31 @@ export class Quality {
     return bytes;
   }
 
+  /**
+  Checks if the element at the given index has been screened.
+  @param elementIndex - Index of the element to check.
+  @returns A boolean indicating whether the element has been screened.
+  */
   public isScreened(elementIndex: number): boolean {
     return this.isBitSet(elementIndex, Quality.SCREENED_BIT);
   }
 
+    /**
+  
+  Checks if the element at the given index has not been screened.
+  @param elementIndex - Index of the element to check.
+  @returns A boolean indicating whether the element has not been screened.
+  */
   public isNotScreened(elementIndex: number): boolean {
     return this.isBitClear(elementIndex, Quality.SCREENED_BIT);
   }
 
+    /**
+  
+  Clears all quality bits for the element at the given index.
+  @param elementIndex - Index of the element to clear quality bits for.
+  @returns Void.
+  */
   public clearQuality(elementIndex: number): void {
     // Clear all quality bits
     let tmpBytes: Int32Array = this.getElementAt(elementIndex);
@@ -916,10 +1182,20 @@ export class Quality {
     }
   }
 
+  /**
+  Clears the screened bit for the element at the given index.
+  @param elementIndex - Index of the element to clear the screened bit for.
+  @returns Void.
+  */
   public clearScreened(elementIndex: number): void {
     this.clearBit(elementIndex, Quality.SCREENED_BIT);
   }
 
+  /**
+  Sets the screened bit for the element at the given index.
+  @param elementIndex - Index of the element to set the screened bit for.
+  @returns Void.
+  */
   public setScreened(elementIndex: number): void {
     this.setBit(elementIndex, Quality.SCREENED_BIT);
   }
@@ -1151,7 +1427,8 @@ export class Quality {
     // has a replacement method set
     if (!this.isBitSet(elementIndex, Quality.SCREENED_BIT)) {
       throw new DataSetTxQualityFlagException(
-        "Method: <isRevised> Attempted to determine if a value was revised when the screened bit was not set. Index: " + elementIndex
+        "Method: <isRevised> Attempted to determine if a value was revised when the screened bit was not set. Index: " +
+          elementIndex
       );
     }
     return (
@@ -1587,11 +1864,11 @@ export class Quality {
 
   public static isRevised_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     // Is Revised if
     // differs from original value,
     // is manually entered, or
@@ -2532,12 +2809,12 @@ export class Quality {
   }
 
   public static isNotRelativeMagnitude_int(intQuality: number): boolean {
-      if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+    if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return !Quality.isRelativeMagnitude_int(intQuality);
   }
 
@@ -2585,11 +2862,11 @@ export class Quality {
 
   public static isDurationMagnitude_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return Quality.isBitSet_int(intQuality, Quality.DURATIONMAGNITUDE_BIT);
   }
 
@@ -2604,11 +2881,11 @@ export class Quality {
 
   public static isNotDurationMagnitude_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return !Quality.isDurationMagnitude_int(intQuality);
   }
 
@@ -2655,11 +2932,11 @@ export class Quality {
 
   public static isNegativeIncremental_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return Quality.isBitSet_int(intQuality, Quality.NEGATIVEINCREMENTAL_BIT);
   }
 
@@ -2674,11 +2951,11 @@ export class Quality {
 
   public static isNotNegativeIncremental_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return !Quality.isNegativeIncremental_int(intQuality);
   }
 
@@ -2725,11 +3002,11 @@ export class Quality {
 
   public static isUserDefinedTest_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return Quality.isBitSet_int(intQuality, Quality.USER_DEFINED_TEST_BIT);
   }
 
@@ -2744,11 +3021,11 @@ export class Quality {
 
   public static isNotUserDefinedTest_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return !Quality.isUserDefinedTest_int(intQuality);
   }
 
@@ -2795,11 +3072,11 @@ export class Quality {
 
   public static isDistributionTest_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return Quality.isBitSet_int(intQuality, Quality.DISTRIBUTIONTEST_BIT);
   }
 
@@ -2814,11 +3091,11 @@ export class Quality {
 
   public static isNotDistributionTest_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return !Quality.isDistributionTest_int(intQuality);
   }
 
@@ -2865,11 +3142,11 @@ export class Quality {
 
   public static isGageList_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return Quality.isBitSet_int(intQuality, Quality.GAGELIST_BIT);
   }
 
@@ -2884,11 +3161,11 @@ export class Quality {
 
   public static isNotGageList_int(intQuality: number): boolean {
     if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-        throw new DataSetTxQualityFlagException(
-          "Method: <isNotRelativeMagnitude_int> Element not screened: " +
-            intQuality
-        );
-      }
+      throw new DataSetTxQualityFlagException(
+        "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+          intQuality
+      );
+    }
     return !Quality.isGageList_int(intQuality);
   }
 
@@ -2996,8 +3273,8 @@ export class Quality {
         zoneId
       );
       const dateMap = new Map<Date, number>();
-      for (const [date, value] of zonedDateTimeMap.entries()) {
-        dateMap.set(date, value);
+        for (const [date, value] of zonedDateTimeMap.entries()) {
+            dateMap.set(date, value);
       }
       return dateMap;
     } else {
@@ -3006,11 +3283,11 @@ export class Quality {
   }
 
   private getZonedDateTimeQualityMap<V>(
-    qualityExtractor: (i: number) => V,
+    qualityExtractor: (i: number) => number,
     timesArray: number[],
     zoneId: string
-  ): Map<Date, V> {
-    const retval = new Map<Date, V>();
+  ): Map<Date, number> {
+      const retval = new Map<Date, number>();
     for (let i = 0; i < timesArray.length; i++) {
       const date = new Date(timesArray[i]);
       const zonedDateTime = new Date(
