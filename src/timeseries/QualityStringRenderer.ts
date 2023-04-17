@@ -1,4 +1,6 @@
-import {Quality} from './Quality.js';
+import { Quality } from './Quality.js';
+import { Color } from "../utils/Colors.js"
+
 
 // import java.awt.Color;
 // import java.util.Collections;
@@ -39,15 +41,6 @@ export class QualityStringRenderer {
         ["E", "white"]
     ]);
 
-    private static readonly LIGHT_RED = "rgb(255, 90, 90)";
-    private static readonly LIGHT_BLUE = "rgb(0, 200, 255)";
-    private static readonly LIGHT_CYAN = "rgb(150, 255, 255)";
-    private static readonly LIGHT_GREEN = "rgb(150, 255, 150)";
-    private static readonly LIGHT_MAGENTA = "rgb(255, 125, 255)";
-    private static readonly LIGHT_PINK = "rgb(255, 210, 210)";
-    private static readonly LIGHT_YELLOW = "rgb(255, 255, 150)";
-    private static readonly LIGHT_ORANGE = "rgb(255, 200, 125)";
-    private static readonly PURPLE = "rgb(128, 0, 128)";
 
     static readonly BINARY_STRING = 0;
     static readonly OCTAL_STRING = 1;
@@ -87,7 +80,7 @@ export class QualityStringRenderer {
         if (stringType === QualityStringRenderer.HEX_STRING)
             return this.pad(n.toString(n), QualityStringRenderer.HEX_STRING);
         if (stringType === QualityStringRenderer.OCTAL_STRING)
-            return this.pad(n.toString(n),  QualityStringRenderer.OCTAL_STRING);
+            return this.pad(n.toString(n), QualityStringRenderer.OCTAL_STRING);
         if (stringType === QualityStringRenderer.INTEGER_STRING)
             return n.toString();
         let qualString = "";
@@ -171,12 +164,202 @@ export class QualityStringRenderer {
     }
 
     static pad(inputStr: string, stringType: number): string {
-        const shouldBe: number[] = [ 32, 11, 8 ];
+        const shouldBe: number[] = [32, 11, 8];
         if (stringType == QualityStringRenderer.INTEGER_STRING) {
             return inputStr;
         }
         const have = inputStr.length;
         const need = shouldBe[stringType] - have;
         return (Quality.PADDING[need] + inputStr);
+    }
+
+    public static getDefaultSymbolicFgColorMap(): Map<string, string> {
+        // Make sure we return the unmodifiable version of the map.
+        return QualityStringRenderer.symbolicFgColorMap;
+    }
+    static generateColorPrefMap(): Map<string, string> {
+        throw new Error("Not Implimented")
+    }
+
+    static convertToColoredHtml(input: string, map: Map<string, string>): string {
+        throw new Error("Not Implimented")
+    }
+
+    public static getDefaultSymbolicBgColorMap(): Map<string, string> {
+        throw new Error("Not Implimented")
+    }
+
+    static getColorLineForChar(c: string, map: Map<string, string>): string {
+        throw new Error("Not Implimented")
+    }
+
+    private static parseColorString(colorString: string): Color {
+        throw new Error("Not Implimented")
+    }
+
+    private static parseRGBString(rgbaStr: string): Color {
+        throw new Error("Not Implimented")
+    }
+
+    private static parseInt(str: string): number {
+        throw new Error("Not Implimented")
+    }
+
+    private static removeChar(s: string, c: string): string {
+        throw new Error("Not Implimented")
+    }
+
+    public static getSymbolicRevisedString(intQuality: number): string {
+        return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_REVISED_STRING);
+    }
+
+    public static getColoredHtmlSymbolicString(intQuality: number, colorMap?: Map<string, string>): string {
+        if (!colorMap) {
+            colorMap = QualityStringRenderer.generateColorPrefMap();
+        }
+        return QualityStringRenderer.convertToColoredHtml(
+            QualityStringRenderer.getSymbolicString(intQuality) + QualityStringRenderer.getSymbolicRevisedString(intQuality),
+            colorMap
+        );
+    }
+
+    public static getSymbolicTestsString(intQuality: number): string {
+        return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_TESTS_STRING);
+    }
+
+
+
+    public static toBinaryStringFromBytes(bytes: Int32Array): string {
+        throw new Error("Not Implimented")
+    }
+
+    public static getHtmlStringDescription(intQuality: number): string {
+        return QualityStringRenderer.getStringDescription(intQuality, ", ", "<br>");
+    }
+
+    private static getStringDescription(intQuality: number, delimiter?: string, linebreak?: string): string {
+        if (!delimiter || !linebreak) {
+            delimiter = ", "
+            linebreak = "\n"
+        }
+        const bytes: Int32Array = new Int32Array(4);
+        bytes[3] = intQuality & Quality.MASK_BYTE;
+        bytes[2] = (intQuality >> 8) & Quality.MASK_BYTE;
+        bytes[1] = (intQuality >> 16) & Quality.MASK_BYTE;
+        bytes[0] = (intQuality >> 24) & Quality.MASK_BYTE;
+
+        if (Quality.isQualityClear(bytes)) {
+            return "Quality is not set";
+        }
+
+        let sb = ""
+        QualityStringRenderer.checkPrimaryBits(sb, bytes, delimiter);
+        QualityStringRenderer.checkRevisionBits(sb, bytes, linebreak);
+        QualityStringRenderer.checkTestBits(sb, bytes, linebreak);
+        if (Quality.isProtected(bytes)) {
+            if (sb.length > 0) {
+                sb += linebreak
+            }
+            sb += "PROTECTED from change or replacement"
+        }
+        return sb;
+    }
+
+    private static appendTextWithDelimeter(sb: string, delimeter: string, text: string): string {
+        if (sb.length > 0) sb += delimeter;
+        sb += text;
+        return sb
+    }
+
+    private static checkPrimaryBits(sb: string, bytes: Int32Array, delimiter: string): string {
+        if (Quality.isScreened(bytes)) {
+            sb += "Screened";
+        } else {
+            sb += "Not Screened";
+        }
+        if (Quality.isOkay(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Passed tests OK");
+        }
+        if (Quality.isMissing(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Set to Missing");
+        }
+        if (Quality.isQuestion(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Questionable Quality");
+        }
+        if (Quality.isReject(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Rejected Quality");
+        }
+        return sb
+    }
+
+    private static checkRevisionBits(sb: string, bytes: Int32Array, linebreak: string): string {
+        if (Quality.isRange1(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Value is between first and second range limit");
+        }
+        if (Quality.isRange2(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Value is between second and third range limit");
+        }
+        if (Quality.isRange3(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Value is above third range limit");
+        }
+        if (Quality.isDifferentValue(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Current value is different from original value");
+        }
+        if (Quality.isRevisedAutomatically(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Revised automatically by DATCHK or other Process");
+        }
+        if (Quality.isRevisedInteractively(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Revised interactively with DATVUE or CWMS Verification Editor");
+        }
+        if (Quality.isRevisedManually(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Manual entry with DATVUE or CWMS Verification Editor");
+        }
+        if (Quality.isRevisedToOriginalAccepted(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Original value accepted in DATVUE or CWMS Verification Editor");
+        }
+        if (Quality.isReplaceLinearInterpolation(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: linear interpolation");
+        }
+        if (Quality.isReplaceManualChange(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: manual change");
+        }
+        if (Quality.isReplaceWithMissing(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: replace with missing value");
+        }
+        if (Quality.isReplaceGraphicalChange(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: graphical change");
+        }
+        return sb
+    }
+
+    private static checkTestBits(sb: string, bytes: Int32Array, linebreak: string): string {
+        if (Quality.isAbsoluteMagnitude(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Absolute Magnitude");
+        }
+        if (Quality.isConstantValue(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Constant Value");
+        }
+        if (Quality.isRateOfChange(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Rate-of-change");
+        }
+        if (Quality.isRelativeMagnitude(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Relative Magnitude");
+        }
+        if (Quality.isDurationMagnitude(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Duration-magnitude");
+        }
+        if (Quality.isNegativeIncremental(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Negative Incremental Value");
+        }
+        if (Quality.isGageList(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: On GAGE list as faulty gage");
+        }
+        if (Quality.isUserDefinedTest(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: User-defined Test");
+        }
+        if (Quality.isDistributionTest(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Distribution Test");
+        }
+        return sb
     }
 }
