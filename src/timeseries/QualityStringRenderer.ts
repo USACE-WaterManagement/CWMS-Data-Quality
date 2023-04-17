@@ -62,7 +62,19 @@ export class QualityStringRenderer {
     public static getSymbolicString(intQuality: number): string {
         return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_STRING);
     }
-
+    public static getJSON(intQuality: number): Object {
+        return {
+            "QUALITY_CODE": intQuality,
+            "SCREENED_ID": Quality.isScreened_int(intQuality) ? "SCREENED" : "UNSCREENED",
+            "VALIDITY_ID": Quality.getValidity_int(intQuality),
+            "RANGE_ID": Quality.getRange_int(intQuality),
+            "CHANGED_ID": Quality.isDifferentValue_int(intQuality) ? "MODIFIED" : "ORIGINAL",
+            "REPL_CAUSE_ID": Quality.getReplaceCause_int(intQuality),
+            "REPL_METHOD_ID": Quality.getReplaceMethod_int(intQuality),
+            "TEST_FAILED_ID": Quality.getTestFailed_int(intQuality),
+            "PROTECTION_ID": Quality.isProtected_int(intQuality) ? "PROTECTED" : "UNPROTECTED"
+        }
+    }
     public static getString(intQuality: number, stringType: number): string {
         let n = intQuality;
         let bytes: Int32Array = new Int32Array(4);
@@ -71,7 +83,7 @@ export class QualityStringRenderer {
         bytes[1] = (n >> 16 & Quality.MASK_BYTE);
         bytes[0] = (n >> 24 & Quality.MASK_BYTE);
         if (stringType === QualityStringRenderer.BINARY_STRING)
-            return this.pad(n.toString(n), 0);
+            return this.pad(n.toString(n), QualityStringRenderer.BINARY_STRING);
         if (stringType === QualityStringRenderer.HEX_STRING)
             return this.pad(n.toString(n), QualityStringRenderer.HEX_STRING);
         if (stringType === QualityStringRenderer.OCTAL_STRING)
@@ -79,26 +91,26 @@ export class QualityStringRenderer {
         if (stringType === QualityStringRenderer.INTEGER_STRING)
             return n.toString();
         let qualString = "";
-        if (stringType === 4) {
+        if (stringType === QualityStringRenderer.SYMBOLIC_STRING) {
             if (Quality.isQualityClear(bytes)) {
                 qualString += " * ";
             } else {
-                if (Quality.isBitSet(bytes, 32))
+                if (Quality.isProtected(bytes))
                     qualString += "P";
                 else
                     qualString += " ";
-                if (Quality.isBitSet(bytes, 3))
+                if (Quality.isMissing(bytes))
                     qualString += "M";
-                if (Quality.isBitSet(bytes, 5))
+                if (Quality.isReject(bytes))
                     qualString += "R";
-                if (Quality.isBitSet(bytes, 4))
+                if (Quality.isQuestion(bytes))
                     qualString += "Q";
                 if (qualString.length === 1)
                     qualString += " ";
             }
             return qualString;
         }
-        if (stringType === 5) {
+        if (stringType === QualityStringRenderer.SYMBOLIC_REVISED_STRING) {
             if (Quality.isAccepted(bytes))
                 qualString += "A";
             else if (Quality.isInterpolated(bytes))
@@ -110,52 +122,52 @@ export class QualityStringRenderer {
             else qualString += " ";
             return qualString;
         }
-        if (stringType === 6) {
-            if (Quality.isBitSet(bytes, 16))
+        if (stringType === QualityStringRenderer.SYMBOLIC_TESTS_STRING) {
+            if (Quality.isAbsoluteMagnitude(bytes))
                 qualString += "AM";
-            if (Quality.isBitSet(bytes, 17)) {
+            if (Quality.isConstantValue(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "CV";
             }
-            if (Quality.isBitSet(bytes, 18)) {
+            if (Quality.isRateOfChange(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "RC";
             }
-            if (Quality.isBitSet(bytes, 19)) {
+            if (Quality.isRelativeMagnitude(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "RM";
             }
-            if (Quality.isBitSet(bytes, 20)) {
+            if (Quality.isDurationMagnitude(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "DM";
             }
-            if (Quality.isBitSet(bytes, 21)) {
+            if (Quality.isNegativeIncremental(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "NI";
             }
-            if (Quality.isBitSet(bytes, 23)) {
+            if (Quality.isGageList(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "GL";
             }
-            if (Quality.isBitSet(bytes, 25)) {
+            if (Quality.isUserDefinedTest(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "UD";
             }
-            if (Quality.isBitSet(bytes, 26)) {
+            if (Quality.isDistributionTest(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "DS";
             }
             return qualString;
         }
-        return n.toString(16);
+        return n.toString(n);
     }
 
     static pad(inputStr: string, stringType: number): string {
