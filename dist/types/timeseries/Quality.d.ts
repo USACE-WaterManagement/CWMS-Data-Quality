@@ -70,14 +70,12 @@ export declare class Quality {
     constructor(quality: Quality);
     constructor(intQuality: number[]);
     static cleanQualityInteger(qualityInt: number): number;
-    static compressQuality(tmp: Quality): void;
     /**
      * Uncompresses the data in a Quality object.
      * @param tmp The Quality object to uncompress.
      * @throws {Error} If tmp is null or undefined.
      * @throws {DataFormatException} If the compressed data in tmp is malformed.
      */
-    static uncompressQuality(tmp: Quality): void;
     /**
       Returns the empty quality value.
       @returns {number} - The empty quality value.
@@ -532,19 +530,19 @@ export declare class Quality {
   
   Clears all quality bits for the element at the given index.
   @param elementIndex - Index of the element to clear quality bits for.
-  @returns Void.
+  @returns void
   */
     clearQuality(elementIndex: number): void;
     /**
     Clears the screened bit for the element at the given index.
     @param elementIndex - Index of the element to clear the screened bit for.
-    @returns Void.
+    @returns void
     */
     clearScreened(elementIndex: number): void;
     /**
     Sets the screened bit for the element at the given index.
     @param elementIndex - Index of the element to set the screened bit for.
-    @returns Void.
+    @returns void
     */
     setScreened(elementIndex: number): void;
     static isScreened(bytes: Int32Array): boolean;

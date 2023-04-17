@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2020" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
-    "module": "commonjs" /* Specify what module code is generated. */,
+    "module": "ESNext" /* Specify what module code is generated. */,
     "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
     "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-
+    "moduleResolution": "node",
+    "lib": ["es2016", "esnext", "dom"],
     /* Type Checking */
+    "strictNullChecks": true,
     "strict": true /* Enable all strict type-checking options. */,
-
     /* Completeness */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     // Tells TypeScript to read JS files, as
     // normally they are ignored as source files
-    // "allowJs": true,
+    "allowJs": true,
     // Generate d.ts files
     "declaration": true,
     // Where to place our generated type files
@@ -26,6 +27,6 @@
     "outDir": "../dist",
     // go to js file when using IDE functions like
     // "Go to Definition" in VSCode
-    "declarationMap": true,
+    "declarationMap": true
   }
 }

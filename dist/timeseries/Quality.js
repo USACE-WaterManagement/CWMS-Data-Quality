@@ -1,31 +1,4 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Quality = void 0;
-const pako = __importStar(require("pako"));
-const QualityStringRenderer_1 = require("./QualityStringRenderer");
+import { QualityStringRenderer } from "./QualityStringRenderer.js";
 class DataSetTxQualityFlagException extends Error {
     constructor(message) {
         super(message);
@@ -167,46 +140,52 @@ class Quality {
         }
         return tmp;
     }
-    static compressQuality(tmp) {
+    /*
+      public static compressQuality(tmp: Quality): void {
         if (tmp._isCompressed || tmp._size < 10) {
-            return;
+          return;
         }
         const output = new Int32Array(pako.deflate(tmp._elementData.buffer));
         tmp._elementDataCompressed = output;
         tmp._isCompressed = true;
-    }
+      }
+    */
     /**
      * Uncompresses the data in a Quality object.
      * @param tmp The Quality object to uncompress.
      * @throws {Error} If tmp is null or undefined.
      * @throws {DataFormatException} If the compressed data in tmp is malformed.
      */
-    static uncompressQuality(tmp) {
-        // If the data is already uncompressed, there's nothing to do.
-        if (!tmp._isCompressed) {
-            return;
+    /*
+    public static uncompressQuality(tmp: Quality): void {
+      // If the data is already uncompressed, there's nothing to do.
+      if (!tmp._isCompressed) {
+        return;
+      }
+      // If the compressed data is null or undefined, we can't uncompress it.
+      const compressedData = tmp._elementDataCompressed;
+      if (compressedData) {
+        try {
+          // Use pako to inflate the compressed data and create a Uint8Array from the result.
+          const inflated = pako.inflate(compressedData.buffer);
+          // Convert the Uint8Array to an Int32Array
+          const intArray = new Int32Array(inflated.buffer);
+          tmp._elementData = intArray;
+          // Clean up by nulling out the compressed data and updating the isCompressed flag.
+          tmp._elementDataCompressed = null;
+          tmp._isCompressed = false;
+        } catch (err) {
+          throw new DataFormatException(
+            "Failed to compress Data Quality. Error: " + err
+          );
         }
-        // If the compressed data is null or undefined, we can't uncompress it.
-        const compressedData = tmp._elementDataCompressed;
-        if (compressedData) {
-            try {
-                // Use pako to inflate the compressed data and create a Uint8Array from the result.
-                const inflated = pako.inflate(compressedData.buffer);
-                // Convert the Uint8Array to an Int32Array
-                const intArray = new Int32Array(inflated.buffer);
-                tmp._elementData = intArray;
-                // Clean up by nulling out the compressed data and updating the isCompressed flag.
-                tmp._elementDataCompressed = null;
-                tmp._isCompressed = false;
-            }
-            catch (err) {
-                throw new DataFormatException("Failed to compress Data Quality. Error: " + err);
-            }
-        }
-        else {
-            throw new Error("Quality data is null or undefined. Failed to uncompress Quality.");
-        }
+      } else {
+        throw new Error(
+          "Quality data is null or undefined. Failed to uncompress Quality."
+        );
+      }
     }
+  */
     /**
       Returns the empty quality value.
       @returns {number} - The empty quality value.
@@ -958,7 +937,7 @@ class Quality {
   
   Clears all quality bits for the element at the given index.
   @param elementIndex - Index of the element to clear quality bits for.
-  @returns Void.
+  @returns void
   */
     clearQuality(elementIndex) {
         // Clear all quality bits
@@ -975,7 +954,7 @@ class Quality {
     /**
     Clears the screened bit for the element at the given index.
     @param elementIndex - Index of the element to clear the screened bit for.
-    @returns Void.
+    @returns void
     */
     clearScreened(elementIndex) {
         this.clearBit(elementIndex, Quality.SCREENED_BIT);
@@ -983,7 +962,7 @@ class Quality {
     /**
     Sets the screened bit for the element at the given index.
     @param elementIndex - Index of the element to set the screened bit for.
-    @returns Void.
+    @returns void
     */
     setScreened(elementIndex) {
         this.setBit(elementIndex, Quality.SCREENED_BIT);
@@ -2496,7 +2475,7 @@ class Quality {
      * @return sorted map that is not thread safe of dates to quality. Values will not be null, but the collection will be empty if QualityTx is null.
      */
     getQualitySymbols(timesArray) {
-        return this.getDateQualityMap((i) => QualityStringRenderer_1.QualityStringRenderer.getSymbolicString(this.getIntegerAt(i)), timesArray);
+        return this.getDateQualityMap((i) => QualityStringRenderer.getSymbolicString(this.getIntegerAt(i)), timesArray);
     }
     /**
      * Gets a sorted map of dates to quality values for the given times array, using the provided function to extract the quality values.
@@ -2538,53 +2517,53 @@ class Quality {
         return retval;
     }
     toStringElement(elementIndex, stringType) {
-        return QualityStringRenderer_1.QualityStringRenderer.getString(this.getIntegerAt(elementIndex), stringType);
+        return QualityStringRenderer.getString(this.getIntegerAt(elementIndex), stringType);
     }
     toBinaryString() {
-        return this.toString(QualityStringRenderer_1.QualityStringRenderer.BINARY_STRING);
+        return this.toString(QualityStringRenderer.BINARY_STRING);
     }
     toOctalString() {
-        return this.toString(QualityStringRenderer_1.QualityStringRenderer.OCTAL_STRING);
+        return this.toString(QualityStringRenderer.OCTAL_STRING);
     }
     toSymbolicString() {
-        return this.toString(QualityStringRenderer_1.QualityStringRenderer.SYMBOLIC_STRING);
+        return this.toString(QualityStringRenderer.SYMBOLIC_STRING);
     }
     toSymbolicRevisedString() {
-        return this.toString(QualityStringRenderer_1.QualityStringRenderer.SYMBOLIC_REVISED_STRING);
+        return this.toString(QualityStringRenderer.SYMBOLIC_REVISED_STRING);
     }
     toSymbolicTestsString() {
-        return this.toString(QualityStringRenderer_1.QualityStringRenderer.SYMBOLIC_TESTS_STRING);
+        return this.toString(QualityStringRenderer.SYMBOLIC_TESTS_STRING);
     }
     toHexString() {
-        return QualityStringRenderer_1.QualityStringRenderer.HEX_STRING.toString();
+        return QualityStringRenderer.HEX_STRING.toString();
     }
     toIntegerString() {
-        return QualityStringRenderer_1.QualityStringRenderer.INTEGER_STRING.toString();
+        return QualityStringRenderer.INTEGER_STRING.toString();
     }
     toIntegerStringElementAt(elementIndex) {
         return this.getIntegerAt(elementIndex).toString();
     }
     toBinaryStringElementAt(elementIndex) {
-        return QualityStringRenderer_1.QualityStringRenderer.pad(this.getIntegerAt(elementIndex).toString(2), QualityStringRenderer_1.QualityStringRenderer.BINARY_STRING);
+        return QualityStringRenderer.pad(this.getIntegerAt(elementIndex).toString(2), QualityStringRenderer.BINARY_STRING);
     }
     toOctalStringElementAt(elementIndex) {
-        return QualityStringRenderer_1.QualityStringRenderer.pad(this.getIntegerAt(elementIndex).toString(8), QualityStringRenderer_1.QualityStringRenderer.OCTAL_STRING);
+        return QualityStringRenderer.pad(this.getIntegerAt(elementIndex).toString(8), QualityStringRenderer.OCTAL_STRING);
     }
     toSymbolicStringElementAt(elementIndex) {
-        return this.toStringElement(elementIndex, QualityStringRenderer_1.QualityStringRenderer.SYMBOLIC_STRING);
+        return this.toStringElement(elementIndex, QualityStringRenderer.SYMBOLIC_STRING);
     }
     toSymbolicTestsStringElementAt(elementIndex) {
-        return this.toStringElement(elementIndex, QualityStringRenderer_1.QualityStringRenderer.SYMBOLIC_TESTS_STRING);
+        return this.toStringElement(elementIndex, QualityStringRenderer.SYMBOLIC_TESTS_STRING);
     }
     toSymbolicRevisedStringElementAt(elementIndex) {
-        return this.toStringElement(elementIndex, QualityStringRenderer_1.QualityStringRenderer.SYMBOLIC_REVISED_STRING);
+        return this.toStringElement(elementIndex, QualityStringRenderer.SYMBOLIC_REVISED_STRING);
     }
     toHexStringElementAt(elementIndex) {
-        return QualityStringRenderer_1.QualityStringRenderer.pad(this.getIntegerAt(elementIndex).toString(16), QualityStringRenderer_1.QualityStringRenderer.HEX_STRING);
+        return QualityStringRenderer.pad(this.getIntegerAt(elementIndex).toString(16), QualityStringRenderer.HEX_STRING);
     }
     toString(stringType) {
         if (typeof stringType === "undefined") {
-            return this.toString(QualityStringRenderer_1.QualityStringRenderer.HEX_STRING);
+            return this.toString(QualityStringRenderer.HEX_STRING);
         }
         let result = "[";
         for (let i = 0; i < this._size; i++) {
@@ -2708,4 +2687,4 @@ Quality.PADDING = [
     "0000000000000000000000000000000",
     "00000000000000000000000000000000",
 ];
-exports.Quality = Quality;
+export { Quality };

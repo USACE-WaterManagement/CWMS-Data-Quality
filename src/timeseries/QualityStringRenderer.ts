@@ -1,4 +1,4 @@
-import {Quality} from './Quality';
+import {Quality} from './Quality.js';
 
 // import java.awt.Color;
 // import java.util.Collections;

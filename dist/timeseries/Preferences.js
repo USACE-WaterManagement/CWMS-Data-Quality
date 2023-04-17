@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.canEditQuality = exports.canShowQuality = exports.setShowQuality = exports.setCanEditQuality = exports.addQualityPreferencesListener = exports.removeQualityPreferencesListener = void 0;
 /**
  * Provides a uniform way of creating the Quality settings preferences
  * @param {Preferences} rootNode The root node to create the preferences node from.
@@ -38,7 +35,6 @@ function canEditQuality(appSpecificRootNode) {
     }
     return value;
 }
-exports.canEditQuality = canEditQuality;
 /**
  * Gets the application specific show quality flag and returns that.  Make
  * sure you're not using the Preferences.userRoot or Preferences.systemRoot
@@ -58,7 +54,6 @@ function canShowQuality(appSpecificRootNode) {
     }
     return value;
 }
-exports.canShowQuality = canShowQuality;
 /**
  * Sets the application specific show quality flag to the value provided.
  * @param {Preferences} appSpecificRootNode The application specific root node.
@@ -69,7 +64,6 @@ function setShowQuality(appSpecificRootNode, showQuality) {
     qualNode.putBoolean("SHOW_QUALITY_FLAGS", showQuality);
     localStorage.setItem("SHOW_QUALITY_FLAGS", showQuality.toString());
 }
-exports.setShowQuality = setShowQuality;
 /**
  * Sets the application specific edit quality flag to the value provided.
  * @param {Preferences} appSpecificRootNode The application specific root node.
@@ -80,7 +74,6 @@ function setCanEditQuality(appSpecificRootNode, editQuality) {
     qualNode.putBoolean("QUALITY_FLAGS_EDITABLE", editQuality);
     localStorage.setItem("QUALITY_FLAGS_EDITABLE", editQuality.toString());
 }
-exports.setCanEditQuality = setCanEditQuality;
 /**
  * Adds a Preference change listener to the node that contains the quality
  * settings.
@@ -92,7 +85,6 @@ function addQualityPreferencesListener(appSpecificRootNode, listener) {
     qualNode.removePreferenceChangeListener(listener);
     window.addEventListener("storage", listener);
 }
-exports.addQualityPreferencesListener = addQualityPreferencesListener;
 /**
  * Removes a Preference change listener from the node that contains the quality settings.
  *
@@ -104,4 +96,4 @@ function removeQualityPreferencesListener(appSpecificRootNode, listener) {
     qualNode.removePreferenceChangeListener(listener);
     window.removeEventListener("storage", listener);
 }
-exports.removeQualityPreferencesListener = removeQualityPreferencesListener;
+export { removeQualityPreferencesListener, addQualityPreferencesListener, setCanEditQuality, setShowQuality, canShowQuality, canEditQuality };

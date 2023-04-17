@@ -1,6 +1,6 @@
-import * as pako from "pako";
+// import * as pako from "pako";
 import TreeMap from "ts-treemap";
-import { QualityStringRenderer } from "./QualityStringRenderer";
+import { QualityStringRenderer } from "./QualityStringRenderer.js";
 
 class DataSetTxQualityFlagException extends Error {
   constructor(message?: string) {
@@ -231,7 +231,7 @@ export class Quality {
     }
     return tmp;
   }
-
+/*
   public static compressQuality(tmp: Quality): void {
     if (tmp._isCompressed || tmp._size < 10) {
       return;
@@ -240,13 +240,14 @@ export class Quality {
     tmp._elementDataCompressed = output;
     tmp._isCompressed = true;
   }
-
+*/
   /**
    * Uncompresses the data in a Quality object.
    * @param tmp The Quality object to uncompress.
    * @throws {Error} If tmp is null or undefined.
    * @throws {DataFormatException} If the compressed data in tmp is malformed.
    */
+  /*
   public static uncompressQuality(tmp: Quality): void {
     // If the data is already uncompressed, there's nothing to do.
     if (!tmp._isCompressed) {
@@ -275,7 +276,7 @@ export class Quality {
       );
     }
   }
-
+*/
   /**
     Returns the empty quality value.
     @returns {number} - The empty quality value.
@@ -1167,7 +1168,7 @@ export class Quality {
   
   Clears all quality bits for the element at the given index.
   @param elementIndex - Index of the element to clear quality bits for.
-  @returns Void.
+  @returns void
   */
   public clearQuality(elementIndex: number): void {
     // Clear all quality bits
@@ -1185,7 +1186,7 @@ export class Quality {
   /**
   Clears the screened bit for the element at the given index.
   @param elementIndex - Index of the element to clear the screened bit for.
-  @returns Void.
+  @returns void
   */
   public clearScreened(elementIndex: number): void {
     this.clearBit(elementIndex, Quality.SCREENED_BIT);
@@ -1194,7 +1195,7 @@ export class Quality {
   /**
   Sets the screened bit for the element at the given index.
   @param elementIndex - Index of the element to set the screened bit for.
-  @returns Void.
+  @returns void
   */
   public setScreened(elementIndex: number): void {
     this.setBit(elementIndex, Quality.SCREENED_BIT);
