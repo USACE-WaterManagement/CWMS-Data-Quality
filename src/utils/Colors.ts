@@ -1,12 +1,21 @@
 
+/**
+ * 
+ * A class that represents a color in the RGB color space. 
+ * 
+ * @remarks Instances of this class are immutable. Based on java.awt.Color.
+ */
 export class Color {
     r = 0
     g = 0
     b = 0
-    constructor(r: number, g: number, b: number) {
+    a = 1.0;
+
+    constructor(r: number, g: number, b: number, a: number = 1.0) {
         this.r = r
         this.g = g
         this.b = b
+        this.a = a
     }
 
     static readonly LIGHT_RED = new Color(255, 90, 90);
@@ -29,22 +38,50 @@ export class Color {
     static readonly YELLOW = new Color(255, 255, 0);
     static readonly ORANGE = new Color(255, 200, 0);
 
-    getRGB() {
-        return [this.r, this.g, this.b]
-    }
-    brighter(): Color {
-        let scale = 1.0 / (1.0 - 0.7);
-        let r = Math.round(Math.min(this.r / scale, 255));
-        let g = Math.round(Math.min(this.g / scale, 255));
-        let b = Math.round(Math.min(this.b / scale, 255));
-        return new Color(r, g, b);
+    /**
+     * Returns the RGB value representing the color in the default sRGB 
+     * ColorModel. (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 
+     * 0-7 are blue).
+     *
+     * For consistency, This method is based on the `java.awt.Color.getRGB()` method from 
+     * the Java standard library.
+     *
+     * @returns The RGB value of the color as a number.
+     */
+    getRGB(): number {
+        return (this.a << 24) | (this.r << 16) | (this.g << 8) | this.b;
     }
 
-    darker(): Color {
-        let scale = 1.0 / 0.7;
-        let r = Math.round(Math.max(this.r * scale, 0));
-        let g = Math.round(Math.max(this.g * scale, 0));
-        let b = Math.round(Math.max(this.b * scale, 0));
-        return new Color(r, g, b);
+    /**
+     * Returns a darker version of this color.
+     *
+     * @param {number} [factor=0.7] - The darkness factor, ranging from 0 to 1.
+     * @returns {Color} The darker version of this color.
+     *
+     * For consistency, This method is based on the `java.awt.Color.darker()` method from 
+     * the Java standard library.
+     */
+    darker(factor: number = 0.7): Color {
+        const r = Math.floor(this.r * factor);
+        const g = Math.floor(this.g * factor);
+        const b = Math.floor(this.b * factor);
+        return new Color(r, g, b, this.a);
     }
+
+    /**
+     * Returns a brighter version of this color.
+     *
+     * @param {number} [factor=0.7] - The brightness factor, ranging from 0 to 1.
+     * @returns {Color} The brighter version of this color.
+     *
+     * For consistency, This method is based on the `java.awt.Color.brighter()` method from 
+     * the Java standard library.
+     */
+    brighter(factor: number = 0.7): Color {
+        const dr = Math.floor((255 - this.r) * factor);
+        const dg = Math.floor((255 - this.g) * factor);
+        const db = Math.floor((255 - this.b) * factor);
+        return new Color(this.r + dr, this.g + dg, this.b + db, this.a);
+    }
+
 }

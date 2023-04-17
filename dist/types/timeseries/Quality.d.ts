@@ -183,6 +183,10 @@ export declare class Quality {
      * @returns True if the quality value is accepted, false otherwise.
      */
     static isAccepted(bytes: Int32Array): boolean;
+    static getReplaceMethod_int(intQuality: number): string;
+    static getValidity_int(intQuality: number): string;
+    static getRange_int(intQuality: number): string;
+    static getReplaceCause_int(intQuality: number): string;
     /**
      * Determines if the given quality integer value represents an accepted data point.
      *  Linear Interpolation Replacement Method set 1 = 0001
@@ -841,6 +845,7 @@ export declare class Quality {
     static clearDistributionTest_int(intQuality: number): number;
     static setDistributionTest(bytes: Int32Array): Int32Array;
     static setDistributionTest_int(intQuality: number): number;
+    static getTestFailed_int(intQuality: number): string;
     isGageList(elementIndex: number): boolean;
     isNotGageList(elementIndex: number): boolean;
     clearGageList(elementIndex: number): void;

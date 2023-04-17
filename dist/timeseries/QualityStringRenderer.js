@@ -12,6 +12,19 @@ class QualityStringRenderer {
     static getSymbolicString(intQuality) {
         return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_STRING);
     }
+    static getJSON(intQuality) {
+        return {
+            "QUALITY_CODE": intQuality,
+            "SCREENED_ID": Quality.isScreened_int(intQuality) ? "SCREENED" : "UNSCREENED",
+            "VALIDITY_ID": Quality.getValidity_int(intQuality),
+            "RANGE_ID": Quality.getRange_int(intQuality),
+            "CHANGED_ID": Quality.isDifferentValue_int(intQuality) ? "MODIFIED" : "ORIGINAL",
+            "REPL_CAUSE_ID": Quality.getReplaceCause_int(intQuality),
+            "REPL_METHOD_ID": Quality.getReplaceMethod_int(intQuality),
+            "TEST_FAILED_ID": Quality.getTestFailed_int(intQuality),
+            "PROTECTION_ID": Quality.isProtected_int(intQuality) ? "PROTECTED" : "UNPROTECTED"
+        };
+    }
     static getString(intQuality, stringType) {
         let n = intQuality;
         let bytes = new Int32Array(4);
@@ -20,7 +33,7 @@ class QualityStringRenderer {
         bytes[1] = (n >> 16 & Quality.MASK_BYTE);
         bytes[0] = (n >> 24 & Quality.MASK_BYTE);
         if (stringType === QualityStringRenderer.BINARY_STRING)
-            return this.pad(n.toString(n), 0);
+            return this.pad(n.toString(n), QualityStringRenderer.BINARY_STRING);
         if (stringType === QualityStringRenderer.HEX_STRING)
             return this.pad(n.toString(n), QualityStringRenderer.HEX_STRING);
         if (stringType === QualityStringRenderer.OCTAL_STRING)
@@ -28,27 +41,27 @@ class QualityStringRenderer {
         if (stringType === QualityStringRenderer.INTEGER_STRING)
             return n.toString();
         let qualString = "";
-        if (stringType === 4) {
+        if (stringType === QualityStringRenderer.SYMBOLIC_STRING) {
             if (Quality.isQualityClear(bytes)) {
                 qualString += " * ";
             }
             else {
-                if (Quality.isBitSet(bytes, 32))
+                if (Quality.isProtected(bytes))
                     qualString += "P";
                 else
                     qualString += " ";
-                if (Quality.isBitSet(bytes, 3))
+                if (Quality.isMissing(bytes))
                     qualString += "M";
-                if (Quality.isBitSet(bytes, 5))
+                if (Quality.isReject(bytes))
                     qualString += "R";
-                if (Quality.isBitSet(bytes, 4))
+                if (Quality.isQuestion(bytes))
                     qualString += "Q";
                 if (qualString.length === 1)
                     qualString += " ";
             }
             return qualString;
         }
-        if (stringType === 5) {
+        if (stringType === QualityStringRenderer.SYMBOLIC_REVISED_STRING) {
             if (Quality.isAccepted(bytes))
                 qualString += "A";
             else if (Quality.isInterpolated(bytes))
@@ -61,52 +74,52 @@ class QualityStringRenderer {
                 qualString += " ";
             return qualString;
         }
-        if (stringType === 6) {
-            if (Quality.isBitSet(bytes, 16))
+        if (stringType === QualityStringRenderer.SYMBOLIC_TESTS_STRING) {
+            if (Quality.isAbsoluteMagnitude(bytes))
                 qualString += "AM";
-            if (Quality.isBitSet(bytes, 17)) {
+            if (Quality.isConstantValue(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "CV";
             }
-            if (Quality.isBitSet(bytes, 18)) {
+            if (Quality.isRateOfChange(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "RC";
             }
-            if (Quality.isBitSet(bytes, 19)) {
+            if (Quality.isRelativeMagnitude(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "RM";
             }
-            if (Quality.isBitSet(bytes, 20)) {
+            if (Quality.isDurationMagnitude(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "DM";
             }
-            if (Quality.isBitSet(bytes, 21)) {
+            if (Quality.isNegativeIncremental(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "NI";
             }
-            if (Quality.isBitSet(bytes, 23)) {
+            if (Quality.isGageList(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "GL";
             }
-            if (Quality.isBitSet(bytes, 25)) {
+            if (Quality.isUserDefinedTest(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "UD";
             }
-            if (Quality.isBitSet(bytes, 26)) {
+            if (Quality.isDistributionTest(bytes)) {
                 if (qualString.length > 0)
                     qualString += ",";
                 qualString += "DS";
             }
             return qualString;
         }
-        return n.toString(16);
+        return n.toString(n);
     }
     static pad(inputStr, stringType) {
         const shouldBe = [32, 11, 8];
@@ -116,6 +129,173 @@ class QualityStringRenderer {
         const have = inputStr.length;
         const need = shouldBe[stringType] - have;
         return (Quality.PADDING[need] + inputStr);
+    }
+    static getDefaultSymbolicFgColorMap() {
+        // Make sure we return the unmodifiable version of the map.
+        return QualityStringRenderer.symbolicFgColorMap;
+    }
+    static generateColorPrefMap() {
+        throw new Error("Not Implimented");
+    }
+    static convertToColoredHtml(input, map) {
+        throw new Error("Not Implimented");
+    }
+    static getDefaultSymbolicBgColorMap() {
+        throw new Error("Not Implimented");
+    }
+    static getColorLineForChar(c, map) {
+        throw new Error("Not Implimented");
+    }
+    static parseColorString(colorString) {
+        throw new Error("Not Implimented");
+    }
+    static parseRGBString(rgbaStr) {
+        throw new Error("Not Implimented");
+    }
+    static parseInt(str) {
+        throw new Error("Not Implimented");
+    }
+    static removeChar(s, c) {
+        throw new Error("Not Implimented");
+    }
+    static getSymbolicRevisedString(intQuality) {
+        return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_REVISED_STRING);
+    }
+    static getColoredHtmlSymbolicString(intQuality, colorMap) {
+        if (!colorMap) {
+            colorMap = QualityStringRenderer.generateColorPrefMap();
+        }
+        return QualityStringRenderer.convertToColoredHtml(QualityStringRenderer.getSymbolicString(intQuality) + QualityStringRenderer.getSymbolicRevisedString(intQuality), colorMap);
+    }
+    static getSymbolicTestsString(intQuality) {
+        return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_TESTS_STRING);
+    }
+    static toBinaryStringFromBytes(bytes) {
+        throw new Error("Not Implimented");
+    }
+    static getHtmlStringDescription(intQuality) {
+        return QualityStringRenderer.getStringDescription(intQuality, ", ", "<br>");
+    }
+    static getStringDescription(intQuality, delimiter, linebreak) {
+        if (!delimiter || !linebreak) {
+            delimiter = ", ";
+            linebreak = "\n";
+        }
+        const bytes = new Int32Array(4);
+        bytes[3] = intQuality & Quality.MASK_BYTE;
+        bytes[2] = (intQuality >> 8) & Quality.MASK_BYTE;
+        bytes[1] = (intQuality >> 16) & Quality.MASK_BYTE;
+        bytes[0] = (intQuality >> 24) & Quality.MASK_BYTE;
+        if (Quality.isQualityClear(bytes)) {
+            return "Quality is not set";
+        }
+        let sb = "";
+        QualityStringRenderer.checkPrimaryBits(sb, bytes, delimiter);
+        QualityStringRenderer.checkRevisionBits(sb, bytes, linebreak);
+        QualityStringRenderer.checkTestBits(sb, bytes, linebreak);
+        if (Quality.isProtected(bytes)) {
+            if (sb.length > 0) {
+                sb += linebreak;
+            }
+            sb += "PROTECTED from change or replacement";
+        }
+        return sb;
+    }
+    static appendTextWithDelimeter(sb, delimeter, text) {
+        if (sb.length > 0)
+            sb += delimeter;
+        sb += text;
+        return sb;
+    }
+    static checkPrimaryBits(sb, bytes, delimiter) {
+        if (Quality.isScreened(bytes)) {
+            sb += "Screened";
+        }
+        else {
+            sb += "Not Screened";
+        }
+        if (Quality.isOkay(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Passed tests OK");
+        }
+        if (Quality.isMissing(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Set to Missing");
+        }
+        if (Quality.isQuestion(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Questionable Quality");
+        }
+        if (Quality.isReject(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, delimiter, "Rejected Quality");
+        }
+        return sb;
+    }
+    static checkRevisionBits(sb, bytes, linebreak) {
+        if (Quality.isRange1(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Value is between first and second range limit");
+        }
+        if (Quality.isRange2(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Value is between second and third range limit");
+        }
+        if (Quality.isRange3(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Value is above third range limit");
+        }
+        if (Quality.isDifferentValue(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Current value is different from original value");
+        }
+        if (Quality.isRevisedAutomatically(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Revised automatically by DATCHK or other Process");
+        }
+        if (Quality.isRevisedInteractively(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Revised interactively with DATVUE or CWMS Verification Editor");
+        }
+        if (Quality.isRevisedManually(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Manual entry with DATVUE or CWMS Verification Editor");
+        }
+        if (Quality.isRevisedToOriginalAccepted(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Original value accepted in DATVUE or CWMS Verification Editor");
+        }
+        if (Quality.isReplaceLinearInterpolation(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: linear interpolation");
+        }
+        if (Quality.isReplaceManualChange(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: manual change");
+        }
+        if (Quality.isReplaceWithMissing(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: replace with missing value");
+        }
+        if (Quality.isReplaceGraphicalChange(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Replacement method: graphical change");
+        }
+        return sb;
+    }
+    static checkTestBits(sb, bytes, linebreak) {
+        if (Quality.isAbsoluteMagnitude(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Absolute Magnitude");
+        }
+        if (Quality.isConstantValue(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Constant Value");
+        }
+        if (Quality.isRateOfChange(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Rate-of-change");
+        }
+        if (Quality.isRelativeMagnitude(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Relative Magnitude");
+        }
+        if (Quality.isDurationMagnitude(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Duration-magnitude");
+        }
+        if (Quality.isNegativeIncremental(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Negative Incremental Value");
+        }
+        if (Quality.isGageList(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: On GAGE list as faulty gage");
+        }
+        if (Quality.isUserDefinedTest(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: User-defined Test");
+        }
+        if (Quality.isDistributionTest(bytes)) {
+            sb += QualityStringRenderer.appendTextWithDelimeter(sb, linebreak, "Failed Test: Distribution Test");
+        }
+        return sb;
     }
 }
 // Prefix for the Quality Flag foreground and background color preferences key.
@@ -144,15 +324,6 @@ QualityStringRenderer.symbolicFgColorMap = new Map([
     ["K", "white"],
     ["E", "white"]
 ]);
-QualityStringRenderer.LIGHT_RED = "rgb(255, 90, 90)";
-QualityStringRenderer.LIGHT_BLUE = "rgb(0, 200, 255)";
-QualityStringRenderer.LIGHT_CYAN = "rgb(150, 255, 255)";
-QualityStringRenderer.LIGHT_GREEN = "rgb(150, 255, 150)";
-QualityStringRenderer.LIGHT_MAGENTA = "rgb(255, 125, 255)";
-QualityStringRenderer.LIGHT_PINK = "rgb(255, 210, 210)";
-QualityStringRenderer.LIGHT_YELLOW = "rgb(255, 255, 150)";
-QualityStringRenderer.LIGHT_ORANGE = "rgb(255, 200, 125)";
-QualityStringRenderer.PURPLE = "rgb(128, 0, 128)";
 QualityStringRenderer.BINARY_STRING = 0;
 QualityStringRenderer.OCTAL_STRING = 1;
 QualityStringRenderer.HEX_STRING = 2;

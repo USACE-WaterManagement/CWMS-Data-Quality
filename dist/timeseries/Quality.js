@@ -388,6 +388,48 @@ class Quality {
             Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT2) &&
             Quality.isBitClear(bytes, Quality.REPLACE_METHOD_BIT3));
     }
+    static getReplaceMethod_int(intQuality) {
+        if (Quality.isReplaceLinearInterpolation_int(intQuality))
+            return "LIN_INTERP";
+        if (Quality.isReplaceManualChange_int(intQuality))
+            return "EXPLICIT";
+        if (Quality.isReplaceWithMissing_int(intQuality))
+            return "MISSING";
+        if (Quality.isReplaceGraphicalChange_int(intQuality))
+            return "GRAPHICAL";
+        return "NONE";
+    }
+    static getValidity_int(intQuality) {
+        if (Quality.isBitSet_int(intQuality, 2))
+            return "OKAY";
+        if (Quality.isBitSet_int(intQuality, 3))
+            return "MISSING";
+        if (Quality.isBitSet_int(intQuality, 4))
+            return "QUESTIONABLE";
+        if (Quality.isBitSet_int(intQuality, 5))
+            return "REJECTED";
+        return "UNKNOWN";
+    }
+    static getRange_int(intQuality) {
+        if (Quality.isRange1_int(intQuality))
+            return "RANGE_1";
+        if (Quality.isRange2_int(intQuality))
+            return "RANGE_2";
+        if (Quality.isRange3_int(intQuality))
+            return "RANGE_3";
+        return "NO_RANGE";
+    }
+    static getReplaceCause_int(intQuality) {
+        if (Quality.isRevisedAutomatically_int(intQuality))
+            return "AUTOMATIC";
+        if (Quality.isRevisedInteractively_int(intQuality))
+            return "INTERACTIVE";
+        if (Quality.isRevisedManually_int(intQuality))
+            return "MANUAL";
+        if (Quality.isRevisedToOriginalAccepted_int(intQuality))
+            return "RESTORED";
+        return "NONE";
+    }
     /**
      * Determines if the given quality integer value represents an accepted data point.
      *  Linear Interpolation Replacement Method set 1 = 0001
@@ -2401,6 +2443,28 @@ class Quality {
     }
     static setDistributionTest_int(intQuality) {
         return Quality.setBit_int(intQuality, Quality.DISTRIBUTIONTEST_BIT);
+    }
+    static getTestFailed_int(intQuality) {
+        let failed = [];
+        if (Quality.isAbsoluteMagnitude_int(intQuality))
+            failed.push("ABSOLUTE_VALUE");
+        if (Quality.isConstantValue_int(intQuality))
+            failed.push("CONSTANT_VALUE");
+        if (Quality.isRateOfChange_int(intQuality))
+            failed.push("RATE_OF_CHANGE");
+        if (this.isRelativeMagnitude_int(intQuality))
+            failed.push("RELATIVE_VALUE");
+        if (this.isDurationMagnitude_int(intQuality))
+            failed.push("DURATION_VALUE");
+        if (this.isNegativeIncremental_int(intQuality))
+            failed.push("NEG_INCREMENT");
+        if (this.isGageList_int(intQuality))
+            failed.push("SKIP_LIST");
+        if (this.isUserDefinedTest_int(intQuality))
+            failed.push("USER_DEFINED");
+        if (this.isDistributionTest_int(intQuality))
+            failed.push("DISTRIBUTION");
+        return failed.length ? failed.join("+") : "NONE";
     }
     isGageList(elementIndex) {
         return this.isBitSet(elementIndex, Quality.GAGELIST_BIT);
