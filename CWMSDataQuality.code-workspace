@@ -1,0 +1,14 @@
+{
+	"folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+         "liveServer.settings.root": "/tests/webpage",
+         "liveServer.settings.mount": [
+            ["/dist", "./dist"],
+            ["/test", "./tests/webpage"]
+        ]
+    }
+}
