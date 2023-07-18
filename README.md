@@ -6,15 +6,19 @@ Here: [Github Page](https://krowvin.github.io/CWMS-Data-Quality/)
 ## Getting Started ☑ 
 1. Install the CWMS-Data-Quality Package
    1. Using [**NPM**](https://www.npmjs.com/package/cwms-data-quality) (with nodejs installed):  
-      In your terminal run:  
-        `npm install cwms-data-quality`
-
+        1. In your terminal run:  
+        `npm i cwms-data-quality`  
+        2. In your typescript/javascript module (assuming you are using a bundler) you can enter:  
+            1. `import {Quality, QualityStringRenderer} from "cwms-data-quality";` at the top of the file  
+            2. Then down in your source you can, for example, call the QualityStringRender static method getJSON with:  
+                `const determined = QualityStringRenderer.getJSON(quality_integer)`  
+                 *where quality_integer is the variable you set.*
    2. **Manually**:  
-        a. Download [index.min.mjs](https://github.com/krowvin/CWMS-Data-Quality/blob/master/index.mjs) and rename it to 
-        cwms-data-quality.mjs  
-2. Import/include the JS Module in your HTML file:  
-    ```<script src="../index.min.mjs" type="module" async defer></script>```  
-    (_optionally_): Start with the [example/default.html](https://github.com/krowvin/CWMS-Data-Quality/blob/master/example/index.html) file
+        1. Download the the source code [here](https://github.com/krowvin/CWMS-Data-Quality/blob/master/) and place it in a directory called "cwms-data-quality". 
+        cwms-data-quality.js. 
+        2. Import/include the JS Module in your HTML file:  
+          ```<script src="<path to your cdq  directory>/cwms-data-quality/index.min.js" type="module" async defer></script>```  
+          (_optionally_): Start with the [example/default.html](https://github.com/krowvin/CWMS-Data-Quality/blob/master/example/index.html) file
 
 
 ## Per the HEC Documentation:
