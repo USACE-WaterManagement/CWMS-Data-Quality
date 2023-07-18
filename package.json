@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "cwms-data-quality",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A JavaScript implementation of the CWMS QualityTx class. Enables working with Time Series Quality integers. Can help in determining the screening, validity, value range, revision, replacement cause, replacement method, tests failing, and protection of a given Timeseries Quality Code. Created for use with CDA. ",
   "main": "index.js",
   "files": [
@@ -26,7 +26,7 @@
     "typescript": "^5.0.4"
   },
   "scripts": {
-    "test": "node tests/import_test.js",
+    "test": "npm run build && node tests/quality_check.js",
     "dist": "echo Creating Dist... && npm pack && xcopy /F /Y *.tgz dist && del *.tgz",
     "minify": "cd src && tsc && cd build && node minify.cjs",
     "build": "cd src && tsc",

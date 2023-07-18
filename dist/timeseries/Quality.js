@@ -726,9 +726,11 @@ export class Quality {
      * @returns True if the integer quality value is protected (SCREENED_BIT and PROTECTED_BIT flags are set), false otherwise.
      */
     static isProtected_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isProtected_int> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isProtected_int> Element not screened: " + intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.PROTECTED_BIT);
     }
     /**
@@ -738,9 +740,11 @@ export class Quality {
      * @returns True if the element is not protected (SCREENED_BIT flag is set and PROTECTED_BIT flag is not set), false otherwise.
      */
     static isNotProtected(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotProtected> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotProtected> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isProtected(bytes);
     }
     /**
@@ -750,9 +754,11 @@ export class Quality {
      * @returns True if the integer quality value is not protected (SCREENED_BIT flag is set and PROTECTED_BIT flag is not set), false otherwise.
      */
     static isNotProtected_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotProtected_int> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotProtected_int> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isProtected_int(intQuality);
     }
     /**
@@ -1086,15 +1092,19 @@ export class Quality {
             Quality.isBitSet_int(intQuality, Quality.QUESTION_BIT));
     }
     static isNotQuestion(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotQuestion> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotQuestion> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isQuestion(bytes);
     }
     static isNotQuestion_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotQuestion_int> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotQuestion_int> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isQuestion_int(intQuality);
     }
     static clearQuestion(bytes) {
@@ -1184,10 +1194,12 @@ export class Quality {
         // differs from original value,
         // is manually entered, or
         // has a replacement method set
-        if (!this.isBitSet(elementIndex, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isRevised> Attempted to determine if a value was revised when the screened bit was not set. Index: " +
-                elementIndex);
-        }
+        // if (!this.isBitSet(elementIndex, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isRevised> Attempted to determine if a value was revised when the screened bit was not set. Index: " +
+        //       elementIndex
+        //   );
+        // }
         return (this.isDifferentValue(elementIndex) ||
             (this.isBitSet(elementIndex, Quality.HOW_REVISED_BIT0) &&
                 this.isBitSet(elementIndex, Quality.HOW_REVISED_BIT1) &&
@@ -1346,9 +1358,11 @@ export class Quality {
         return !Quality.isReject(bytes);
     }
     static isNotReject_int(intQuality) {
-        if (!this.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotReject_int> Element not screened: " + intQuality);
-        }
+        // if (!this.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotReject_int> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isReject_int(intQuality);
     }
     static clearReject(bytes) {
@@ -1490,9 +1504,11 @@ export class Quality {
         return Quality.setBit_int(intQuality, Quality.VALUE_DIFFERS_BIT);
     }
     static isRevised(bytes) {
-        if (!this.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isRevised> Element not screened: " + bytes);
-        }
+        // if (!this.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isRevised> Element not screened: " + bytes
+        //   );
+        // }
         // Is Revised if
         // differs from original value,
         // is manually entered, or
@@ -1507,10 +1523,12 @@ export class Quality {
             Quality.isBitSet(bytes, Quality.REPLACE_METHOD_BIT3));
     }
     static isRevised_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         // Is Revised if
         // differs from original value,
         // is manually entered, or
@@ -1525,15 +1543,19 @@ export class Quality {
             Quality.isBitSet_int(intQuality, Quality.REPLACE_METHOD_BIT3));
     }
     static isNotRevised(bytes) {
-        if (!this.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRevised> Element not screened: " + bytes);
-        }
+        // if (!this.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRevised> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isRevised(bytes);
     }
     static isNotRevised_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRevised> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRevised> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isRevised_int(intQuality);
     }
     static clearHowRevised(bytes) {
@@ -1980,15 +2002,19 @@ export class Quality {
         return Quality.clearBit_int(tmp, Quality.REPLACE_METHOD_BIT3);
     }
     isOkay(elementIndex) {
-        if (!Quality.isBitSet_int(elementIndex, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isOkay> Element not screened: " + elementIndex);
-        }
+        // if (!Quality.isBitSet_int(elementIndex, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isOkay> Element not screened: " + elementIndex
+        //   );
+        // }
         return this.isBitSet(elementIndex, Quality.OKAY_BIT);
     }
     isNotOkay(elementIndex) {
-        if (!Quality.isBitSet_int(elementIndex, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isOkay> Element not screened: " + elementIndex);
-        }
+        // if (!Quality.isBitSet_int(elementIndex, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isOkay> Element not screened: " + elementIndex
+        //   );
+        // }
         return !this.isOkay(elementIndex);
     }
     clearOkay(elementIndex) {
@@ -2003,9 +2029,11 @@ export class Quality {
         this.setBit(elementIndex, Quality.SCREENED_BIT);
     }
     static isOkay(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isOkay> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.OKAY_BIT);
     }
     static isOkay_int(intQuality) {
@@ -2013,15 +2041,19 @@ export class Quality {
             Quality.isBitSet_int(intQuality, Quality.OKAY_BIT));
     }
     static isNotOkay(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isOkay(bytes);
     }
     static isNotOkay_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isOkay_int(intQuality);
     }
     static clearOkay(bytes) {
@@ -2064,27 +2096,35 @@ export class Quality {
         this.setBit(elementIndex, Quality.ABSOLUTEMAGNITUDE_BIT);
     }
     static isAbsoluteMagnitude(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.ABSOLUTEMAGNITUDE_BIT);
     }
     static isAbsoluteMagnitude_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.ABSOLUTEMAGNITUDE_BIT);
     }
     static isNotAbsoluteMagnitude(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isAbsoluteMagnitude(bytes);
     }
     static isNotAbsoluteMagnitude_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isAbsoluteMagnitude_int(intQuality);
     }
     static clearAbsoluteMagnitude(bytes) {
@@ -2112,27 +2152,35 @@ export class Quality {
         this.setBit(elementIndex, Quality.CONSTANTVALUE_BIT);
     }
     static isConstantValue(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.CONSTANTVALUE_BIT);
     }
     static isConstantValue_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.CONSTANTVALUE_BIT);
     }
     static isNotConstantValue(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isConstantValue(bytes);
     }
     static isNotConstantValue_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isConstantValue_int(intQuality);
     }
     static clearConstantValue(bytes) {
@@ -2160,27 +2208,35 @@ export class Quality {
         this.setBit(elementIndex, Quality.RATEOFCHANGE_BIT);
     }
     static isRateOfChange(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.RATEOFCHANGE_BIT);
     }
     static isRateOfChange_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.RATEOFCHANGE_BIT);
     }
     static isNotRateOfChange(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRateOfChange> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRateOfChange> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isRateOfChange(bytes);
     }
     static isNotRateOfChange_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotOkay> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotOkay> Element not screened: " + intQuality
+        //   );
+        // }
         return !Quality.isRateOfChange_int(intQuality);
     }
     static clearRateOfChange(bytes) {
@@ -2208,28 +2264,36 @@ export class Quality {
         this.setBit(elementIndex, Quality.RELATIVEMAGNITUDE_BIT);
     }
     static isRelativeMagnitude(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isRelativeMagnitude> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isRelativeMagnitude> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.RELATIVEMAGNITUDE_BIT);
     }
     static isRelativeMagnitude_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isRelativeMagnitude> Element not screened: " + intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isRelativeMagnitude> Element not screened: " + intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.RELATIVEMAGNITUDE_BIT);
     }
     static isNotRelativeMagnitude(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isRelativeMagnitude(bytes);
     }
     static isNotRelativeMagnitude_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return !Quality.isRelativeMagnitude_int(intQuality);
     }
     static clearRelativeMagnitude(bytes) {
@@ -2257,29 +2321,37 @@ export class Quality {
         this.setBit(elementIndex, Quality.DURATIONMAGNITUDE_BIT);
     }
     static isDurationMagnitude(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.DURATIONMAGNITUDE_BIT);
     }
     static isDurationMagnitude_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.DURATIONMAGNITUDE_BIT);
     }
     static isNotDurationMagnitude(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isDurationMagnitude(bytes);
     }
     static isNotDurationMagnitude_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return !Quality.isDurationMagnitude_int(intQuality);
     }
     static clearDurationMagnitude(bytes) {
@@ -2307,16 +2379,20 @@ export class Quality {
         this.setBit(elementIndex, Quality.NEGATIVEINCREMENTAL_BIT);
     }
     static isNegativeIncremental(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.NEGATIVEINCREMENTAL_BIT);
     }
     static isNegativeIncremental_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.NEGATIVEINCREMENTAL_BIT);
     }
     static isNotNegativeIncremental(bytes) {
@@ -2326,10 +2402,12 @@ export class Quality {
         return !Quality.isNegativeIncremental(bytes);
     }
     static isNotNegativeIncremental_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return !Quality.isNegativeIncremental_int(intQuality);
     }
     static clearNegativeIncremental(bytes) {
@@ -2357,29 +2435,37 @@ export class Quality {
         this.setBit(elementIndex, Quality.USER_DEFINED_TEST_BIT);
     }
     static isUserDefinedTest(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.USER_DEFINED_TEST_BIT);
     }
     static isUserDefinedTest_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.USER_DEFINED_TEST_BIT);
     }
     static isNotUserDefinedTest(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isUserDefinedTest(bytes);
     }
     static isNotUserDefinedTest_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return !Quality.isUserDefinedTest_int(intQuality);
     }
     static clearUserDefinedTest(bytes) {
@@ -2407,29 +2493,37 @@ export class Quality {
         this.setBit(elementIndex, Quality.DISTRIBUTIONTEST_BIT);
     }
     static isDistributionTest(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return Quality.isBitSet(bytes, Quality.DISTRIBUTIONTEST_BIT);
     }
     static isDistributionTest_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.DISTRIBUTIONTEST_BIT);
     }
     static isNotDistributionTest(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isDistributionTest(bytes);
     }
     static isNotDistributionTest_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return !Quality.isDistributionTest_int(intQuality);
     }
     static clearDistributionTest(bytes) {
@@ -2479,29 +2573,37 @@ export class Quality {
         this.setBit(elementIndex, Quality.GAGELIST_BIT);
     }
     static isGageList(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return this.isBitSet(bytes, Quality.GAGELIST_BIT);
     }
     static isGageList_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return Quality.isBitSet_int(intQuality, Quality.GAGELIST_BIT);
     }
     static isNotGageList(bytes) {
-        if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes);
-        }
+        // if (!Quality.isBitSet(bytes, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " + bytes
+        //   );
+        // }
         return !Quality.isGageList(bytes);
     }
     static isNotGageList_int(intQuality) {
-        if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
-            throw new DataSetTxQualityFlagException("Method: <isNotRelativeMagnitude_int> Element not screened: " +
-                intQuality);
-        }
+        // if (!Quality.isBitSet_int(intQuality, Quality.SCREENED_BIT)) {
+        //   throw new DataSetTxQualityFlagException(
+        //     "Method: <isNotRelativeMagnitude_int> Element not screened: " +
+        //       intQuality
+        //   );
+        // }
         return !Quality.isGageList_int(intQuality);
     }
     static clearGageList(bytes) {
