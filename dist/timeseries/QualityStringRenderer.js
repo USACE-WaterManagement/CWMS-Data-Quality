@@ -8,7 +8,7 @@ import { Quality } from './Quality.js';
 /**
  *
  */
-class QualityStringRenderer {
+export class QualityStringRenderer {
     static getSymbolicString(intQuality) {
         return QualityStringRenderer.getString(intQuality, QualityStringRenderer.SYMBOLIC_STRING);
     }
@@ -333,4 +333,3 @@ QualityStringRenderer.SYMBOLIC_REVISED_STRING = 5;
 QualityStringRenderer.SYMBOLIC_TESTS_STRING = 6;
 // Be sure to use the getters for accessing these, since they may be null.
 QualityStringRenderer.previousColorMap = new Map();
-export { QualityStringRenderer };

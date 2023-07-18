@@ -11,7 +11,7 @@ class DataFormatException extends Error {
         Object.setPrototypeOf(this, DataFormatException.prototype);
     }
 }
-class Quality {
+export class Quality {
     constructor(arg) {
         this._elementDataCompressed = null;
         this._isCompressed = false;
@@ -2751,4 +2751,3 @@ Quality.PADDING = [
     "0000000000000000000000000000000",
     "00000000000000000000000000000000",
 ];
-export { Quality };

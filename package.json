@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "cwms-data-quality",
-  "version": "1.2.1",
+  "version": "2.1.0",
   "description": "A JavaScript implementation of the CWMS QualityTx class. Enables working with Time Series Quality integers. Can help in determining the screening, validity, value range, revision, replacement cause, replacement method, tests failing, and protection of a given Timeseries Quality Code. Created for use with CDA. ",
   "main": "index.js",
   "files": [
@@ -30,7 +30,8 @@
     "dist": "echo Creating Dist... && npm pack && xcopy /F /Y *.tgz dist && del *.tgz",
     "minify": "cd src && tsc && cd build && node minify.cjs",
     "build": "cd src && tsc",
-    "deploy": "echo Running Test... && npm run test && echo Building Files... && npm run build && npm publish"
+    "deploy": "echo Running Test... && npm run test && echo Building Files... && npm run build && npm publish",
+    "publish": "npm login && npm publish"
   },
   "homepage": "https://krowvin.github.io/CWMS-Data-Quality",
   "keywords": [
@@ -46,9 +47,9 @@
     "system"
   ],
   "bugs": "https://github.com/krowvin/cwms-data-quality/issues",
-  "author": "Charles Graham <charlie@krowvin.com> (https://krowvin.com)",
+  "author": "Charles Graham <charles.r.graham@usace.army.mil>",
   "contributors": [
-    "Charles Graham <charlie@krowvin.com> (https://krowvin.com)"
+    "Charles Graham <charles.r.graham@usace.army.mil>"
   ],
   "license": "MIT",
   "dependencies": {

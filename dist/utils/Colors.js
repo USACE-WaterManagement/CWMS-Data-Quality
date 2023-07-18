@@ -4,7 +4,7 @@
  *
  * @remarks Instances of this class are immutable. Based on java.awt.Color.
  */
-class Color {
+export class Color {
     constructor(r, g, b, a = 1.0) {
         this.r = 0;
         this.g = 0;
@@ -78,4 +78,3 @@ Color.RED = new Color(255, 0, 0);
 Color.WHITE = new Color(255, 255, 255);
 Color.YELLOW = new Color(255, 255, 0);
 Color.ORANGE = new Color(255, 200, 0);
-export { Color };
