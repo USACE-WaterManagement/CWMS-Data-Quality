@@ -253,9 +253,9 @@ export class QualityStringRenderer {
         }
 
         let sb = ""
-        QualityStringRenderer.checkPrimaryBits(sb, bytes, delimiter);
-        QualityStringRenderer.checkRevisionBits(sb, bytes, linebreak);
-        QualityStringRenderer.checkTestBits(sb, bytes, linebreak);
+        sb = QualityStringRenderer.checkPrimaryBits(sb, bytes, delimiter);
+        sb = QualityStringRenderer.checkRevisionBits(sb, bytes, linebreak);
+        sb = QualityStringRenderer.checkTestBits(sb, bytes, linebreak);
         if (Quality.isProtected(bytes)) {
             if (sb.length > 0) {
                 sb += linebreak
