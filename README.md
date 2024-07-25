@@ -20,7 +20,6 @@ Here: [Github Page](https://krowvin.github.io/CWMS-Data-Quality/)
           ```<script src="<path to your cdq  directory>/cwms-data-quality/index.min.js" type="module" async defer></script>```  
           (_optionally_): Start with the [example/default.html](https://github.com/krowvin/CWMS-Data-Quality/blob/master/example/index.html) file
 
-
 ## Per the HEC Documentation:
 
 ### Data Quality Rules :
