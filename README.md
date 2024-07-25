@@ -8,7 +8,6 @@ Source for this page: [Github Page](https://krowvin.github.io/CWMS-Data-Quality/
    1. Using [**NPM**](https://www.npmjs.com/package/cwms-data-quality) (with nodejs installed):  
       In your terminal run:  
         `npm i cwms-data-quality`
-
    2. **Manually**:  
         a. Download [index.min.mjs](https://github.com/krowvin/CWMS-Data-Quality/blob/master/index.mjs) and rename it to 
         cwms-data-quality.mjs  
