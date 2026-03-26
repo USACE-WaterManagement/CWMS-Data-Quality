@@ -130,7 +130,7 @@
                             <span class="input-group-text" id="inputGroup-sizing-default" style="font-family: monospace;">Bit Map </span>
                             <input autocomplete="off"
                                 id="bitBinMap" type="text" class="form-control" style="letter-spacing: 0.2em;" aria-label="Sizing example input"
-                                aria-describedby="inputGroup-sizing-default" placeholder="Enter a 32bit binary value, Little Endian (1 or 0)"
+                                aria-describedby="inputGroup-sizing-default" placeholder="Enter a 32bit binary value, Most Signifigant Bit First (1 or 0)"
                                 value="00000011010111111010010011010001"
                                 maxlength="32" minlength="1">
                             <span id="inputBitCount" class="input-group-text border border-3 border-success">32 / 32</span>
@@ -252,7 +252,7 @@
                                             <span class="repl-cause rounded p-2">1 0 0</span> <span class="changed rounded p-2">1</span> <span
                                                 class="range rounded p-2">1 0</span> <span class="valid rounded p-2">1 0 0 0</span> <span
                                                 class="screened rounded p-2">1</span></span><br><br>
-                                        <em>Because this is Little Endian bit order, the <b class="screened rounded px-2">far right bit</b> is bit index 0.</em>
+                                        <em>Because this is Most Signifigant Bit First order, the <b class="screened rounded px-2">far right bit</b> is bit index 0.</em>
                                         <h4>Let's walk through from right to left using the diagram below:</h4>
                                         <ul>
                                             <li><a title="Show Me" href="#SCREENED" class="screened px-2 rounded-pill me-1"></a><b>Bit 0 (1)</b>: or the far right bit - is the screened bit. It is 1 in our example so the value is screened.</li>
@@ -278,7 +278,7 @@
                                         <h4>Bit Mappings :</h4> 
                                         <em>The bit map that corresponds to each flag/value is represented below.</em><br>
                                         <pre>
-Little Endian i.e. 31....0
+Most Signifigant Bit First i.e. 31....0
 
   3                   2                   1                     
 <span class="bg-white py-1 rounded-pill fw-light"><span class="protected rounded py-2">1</span> 0 9 8 7 6 <span class="test-failed rounded py-2">5 4 3 2 1 0 9 8 7 6 5</span> <span class="repl-method rounded py-2">4 3 2 1</span> <span class="repl-cause rounded py-2">0 9 8</span> <span class="changed rounded py-2">7</span> <span class="range rounded py-2">6 5</span> <span class="valid rounded py-2">4 3 2 1</span> <span class="screened rounded py-2">0</span></span>
