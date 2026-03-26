@@ -45,7 +45,7 @@ Here: [Github Page](https://krowvin.github.io/CWMS-Data-Quality/)
 
 
 ### Bit Mappings :       
-    Little Endian i.e. 31....0
+    Most Signifigant Bit First i.e. 31....0
 
          3                   2                   1                     
      2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1  
